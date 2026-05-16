@@ -1,0 +1,113 @@
+import type { CrmData } from '../core/types';
+
+const systemCreator = {
+  id: 'system',
+  name: 'Sistema',
+  email: 'sistema@roqia.com',
+  role: 'admin' as const,
+};
+
+export const initialData: CrmData = {
+  tickets: [
+    {
+      id: 'ticket-1',
+      number: 1001,
+      title: 'Configurar acesso do novo usuario',
+      clientName: 'Alpha Contabilidade',
+      category: 'Suporte',
+      priority: 'Alta',
+      status: 'Aberto',
+      description: 'Cliente precisa liberar acesso ao painel financeiro para novo colaborador.',
+      createdAt: '2026-05-12',
+      createdBy: systemCreator,
+      history: [
+        {
+          id: 'history-1',
+          date: '2026-05-12',
+          title: 'Chamado aberto',
+          description: 'Cliente precisa liberar acesso ao painel financeiro para novo colaborador.',
+        },
+      ],
+    },
+    {
+      id: 'ticket-2',
+      number: 1002,
+      title: 'Revisar integracao de boletos',
+      clientName: 'Clinica Viva',
+      category: 'Financeiro',
+      priority: 'Media',
+      status: 'Em andamento',
+      description: 'Retornos bancarios chegando com atraso no fechamento mensal.',
+      createdAt: '2026-05-10',
+      createdBy: systemCreator,
+      history: [
+        {
+          id: 'history-2',
+          date: '2026-05-10',
+          title: 'Chamado aberto',
+          description: 'Retornos bancarios chegando com atraso no fechamento mensal.',
+        },
+        {
+          id: 'history-3',
+          date: '2026-05-12',
+          title: 'Status atualizado',
+          description: 'Status alterado para Em andamento.',
+        },
+      ],
+    },
+  ],
+  customers: [
+    {
+      id: 'customer-1',
+      name: 'Alpha Contabilidade',
+      contact: 'Marina Costa',
+      email: 'marina@alphacont.com',
+      plan: 'Profissional',
+      monthlyValue: 490,
+      dueDay: 10,
+      nextDueDate: '2026-06-10',
+      status: 'Ativa',
+    },
+    {
+      id: 'customer-2',
+      name: 'Clinica Viva',
+      contact: 'Rafael Lima',
+      email: 'rafael@clinicaviva.com',
+      plan: 'Essencial',
+      monthlyValue: 290,
+      dueDay: 5,
+      nextDueDate: '2026-06-05',
+      status: 'Pendente',
+    },
+  ],
+  tasks: [
+    {
+      id: 'task-1',
+      title: 'Enviar proposta de upgrade',
+      type: 'Cliente',
+      customerName: 'Alpha Contabilidade',
+      ownerId: 'member-1',
+      dueDate: '2026-05-18',
+      status: 'Pendente',
+      notes: 'Incluir comparativo entre Profissional e Enterprise.',
+      createdAt: '2026-05-12',
+      createdBy: systemCreator,
+    },
+    {
+      id: 'task-2',
+      title: 'Prototipar fluxo de onboarding com IA',
+      type: 'Prototipo',
+      ownerId: 'member-2',
+      dueDate: '2026-05-24',
+      status: 'Em andamento',
+      notes: 'Validar experiencia para novos clientes antes de virar funcionalidade oficial.',
+      createdAt: '2026-05-12',
+      createdBy: systemCreator,
+    },
+  ],
+  team: [
+    { id: 'member-1', name: 'Ana Souza', role: 'Relacionamento' },
+    { id: 'member-2', name: 'Bruno Alves', role: 'Suporte' },
+    { id: 'member-3', name: 'Carla Mendes', role: 'Financeiro' },
+  ],
+};
