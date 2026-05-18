@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import path from 'path';
 import { env } from './config/env.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { customersRoutes } from './routes/customers.routes.js';
@@ -28,6 +29,14 @@ export function createApp() {
   app.use('/api/tickets', ticketsRoutes);
   app.use('/api/tasks', tasksRoutes);
   app.use('/api/finance', financeRoutes);
+
+  // Serve the frontend static files
+  app.use(express.static(path.join(process.cwd(), 'dist')));
+  
+  // Catch-all route to serve the frontend's index.html for client-side routing
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+  });
 
   app.use(notFound);
   app.use(errorHandler);
