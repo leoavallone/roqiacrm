@@ -8,7 +8,7 @@ export const customersRoutes = Router();
 
 customersRoutes.use(authenticate);
 customersRoutes.get('/', asyncHandler(listCustomers));
-customersRoutes.use(authorize('admin'));
+customersRoutes.use(authorize('superAdmin'));
 customersRoutes.post('/', asyncHandler(createCustomer));
 customersRoutes.patch('/:id', asyncHandler(updateCustomer));
 customersRoutes.delete('/:id', asyncHandler(deleteCustomer));

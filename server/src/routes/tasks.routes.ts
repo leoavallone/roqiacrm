@@ -6,8 +6,8 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const tasksRoutes = Router();
 
-tasksRoutes.use(authenticate, authorize('admin'));
+tasksRoutes.use(authenticate, authorize('superAdmin', 'admin', 'collaborator'));
 tasksRoutes.get('/', asyncHandler(listTasks));
-tasksRoutes.post('/', asyncHandler(createTask));
+tasksRoutes.post('/', authorize('superAdmin', 'admin'), asyncHandler(createTask));
 tasksRoutes.patch('/:id', asyncHandler(updateTask));
-tasksRoutes.delete('/:id', asyncHandler(deleteTask));
+tasksRoutes.delete('/:id', authorize('superAdmin', 'admin'), asyncHandler(deleteTask));

@@ -6,10 +6,10 @@ const SESSION_KEY = 'roqiacrm:session:v1';
 const defaultAccounts: UserAccount[] = [
   {
     id: 'user-admin-1',
-    name: 'Admin RoqIA',
-    email: 'admin@roqia.com',
-    password: 'admin123',
-    role: 'admin',
+    name: 'Super Admin RoqIA',
+    email: 'roqiaaccelerate@gmail.com',
+    password: 'Avallone2511!',
+    role: 'superAdmin',
   },
 ];
 

@@ -1,12 +1,13 @@
 import { CreditCard, Edit3, Save, Trash2, UserPlus } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { daysUntil, formatCurrency, formatDate } from '../../core/date';
-import type { Customer, SubscriptionStatus } from '../../core/types';
+import type { Customer, CustomerServiceMode, SubscriptionStatus } from '../../core/types';
 import { SectionHeader } from '../../components/SectionHeader';
 import { StatusBadge } from '../../components/StatusBadge';
 
 interface CustomersViewProps {
   customers: Customer[];
+  readOnly?: boolean;
   onCreate: (customer: Omit<Customer, 'id'>) => Promise<void>;
   onUpdate: (customerId: string, customer: Omit<Customer, 'id'>) => Promise<void>;
   onDelete: (customerId: string) => Promise<void>;
@@ -27,9 +28,10 @@ const emptyEditForm = {
   dueDay: 10,
   nextDueDate: '2026-06-10',
   status: 'Ativa' as SubscriptionStatus,
+  serviceMode: 'solo' as CustomerServiceMode,
 };
 
-export function CustomersView({ customers, onCreate, onUpdate, onDelete }: CustomersViewProps) {
+export function CustomersView({ customers, readOnly = false, onCreate, onUpdate, onDelete }: CustomersViewProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState(emptyEditForm);
   const [form, setForm] = useState({
@@ -41,6 +43,7 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
     dueDay: 10,
     nextDueDate: '2026-06-10',
     status: 'Ativa' as SubscriptionStatus,
+    serviceMode: 'solo' as CustomerServiceMode,
   });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -60,6 +63,7 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
       dueDay: customer.dueDay,
       nextDueDate: customer.nextDueDate,
       status: customer.status,
+      serviceMode: customer.serviceMode,
     });
   }
 
@@ -70,9 +74,10 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
 
   return (
     <section className="view-grid">
-      <div className="panel">
-        <SectionHeader title="Cadastro de clientes" description="Controle planos, valores e vencimentos de assinatura." />
-        <form className="form-stack" onSubmit={handleSubmit}>
+      {!readOnly && (
+        <div className="panel">
+          <SectionHeader title="Cadastro de clientes" description="Controle planos, valores e vencimentos de assinatura." />
+          <form className="form-stack" onSubmit={handleSubmit}>
           <label>
             Nome da empresa
             <input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
@@ -139,23 +144,36 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
               />
             </label>
           </div>
-          <label>
-            Situacao
-            <select
-              value={form.status}
-              onChange={(event) => setForm({ ...form, status: event.target.value as SubscriptionStatus })}
-            >
-              <option>Ativa</option>
-              <option>Pendente</option>
-              <option>Vencida</option>
-            </select>
-          </label>
+          <div className="form-row">
+            <label>
+              Situacao
+              <select
+                value={form.status}
+                onChange={(event) => setForm({ ...form, status: event.target.value as SubscriptionStatus })}
+              >
+                <option>Ativa</option>
+                <option>Pendente</option>
+                <option>Vencida</option>
+              </select>
+            </label>
+            <label>
+              Atendimento
+              <select
+                value={form.serviceMode}
+                onChange={(event) => setForm({ ...form, serviceMode: event.target.value as CustomerServiceMode })}
+              >
+                <option value="solo">Solo</option>
+                <option value="partnership">Parceria</option>
+              </select>
+            </label>
+          </div>
           <button className="primary-action" type="submit">
             <UserPlus size={18} aria-hidden="true" />
             Cadastrar cliente
           </button>
-        </form>
-      </div>
+          </form>
+        </div>
+      )}
 
       <div className="panel">
         <SectionHeader title="Carteira de clientes" description="Visao rapida das assinaturas e vencimentos." />
@@ -240,17 +258,29 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
                           />
                         </label>
                       </div>
-                      <label>
-                        Situacao
-                        <select
-                          value={editForm.status}
-                          onChange={(event) => setEditForm({ ...editForm, status: event.target.value as SubscriptionStatus })}
-                        >
-                          <option>Ativa</option>
-                          <option>Pendente</option>
-                          <option>Vencida</option>
-                        </select>
-                      </label>
+                      <div className="form-row">
+                        <label>
+                          Situacao
+                          <select
+                            value={editForm.status}
+                            onChange={(event) => setEditForm({ ...editForm, status: event.target.value as SubscriptionStatus })}
+                          >
+                            <option>Ativa</option>
+                            <option>Pendente</option>
+                            <option>Vencida</option>
+                          </select>
+                        </label>
+                        <label>
+                          Atendimento
+                          <select
+                            value={editForm.serviceMode}
+                            onChange={(event) => setEditForm({ ...editForm, serviceMode: event.target.value as CustomerServiceMode })}
+                          >
+                            <option value="solo">Solo</option>
+                            <option value="partnership">Parceria</option>
+                          </select>
+                        </label>
+                      </div>
                       <div className="record-actions">
                         <button className="secondary-action" type="button" onClick={() => void saveEditing(customer.id)}>
                           <Save size={16} aria-hidden="true" />
@@ -278,19 +308,22 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
                       </div>
                       <div className="record-meta">
                         <span>Dia {customer.dueDay}</span>
+                        <span>{customer.serviceMode === 'partnership' ? 'Parceria' : 'Solo'}</span>
                         <span>{formatDate(customer.nextDueDate)}</span>
                         <span>{remainingDays < 0 ? `${Math.abs(remainingDays)} dias atrasado` : `${remainingDays} dias`}</span>
                       </div>
-                      <div className="record-actions record-actions--compact">
-                        <button className="secondary-action" type="button" onClick={() => startEditing(customer)}>
-                          <Edit3 size={16} aria-hidden="true" />
-                          Editar
-                        </button>
-                        <button className="secondary-action" type="button" onClick={() => void onDelete(customer.id)}>
-                          <Trash2 size={16} aria-hidden="true" />
-                          Excluir
-                        </button>
-                      </div>
+                      {!readOnly && (
+                        <div className="record-actions record-actions--compact">
+                          <button className="secondary-action" type="button" onClick={() => startEditing(customer)}>
+                            <Edit3 size={16} aria-hidden="true" />
+                            Editar
+                          </button>
+                          <button className="secondary-action" type="button" onClick={() => void onDelete(customer.id)}>
+                            <Trash2 size={16} aria-hidden="true" />
+                            Excluir
+                          </button>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

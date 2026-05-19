@@ -27,6 +27,10 @@ function normalizeCrmData(data: CrmData, initialData: CrmData): CrmData {
   return {
     ...initialData,
     ...data,
+    customers: data.customers.map((customer) => ({
+      ...customer,
+      serviceMode: customer.serviceMode ?? 'solo',
+    })),
     tickets: data.tickets.map((ticket, index) => ({
       ...ticket,
       number: ticket.number ?? 1001 + index,
@@ -34,7 +38,7 @@ function normalizeCrmData(data: CrmData, initialData: CrmData): CrmData {
         id: 'system',
         name: 'Sistema',
         email: 'sistema@roqia.com',
-        role: 'admin',
+        role: 'superAdmin',
       },
       assignedToId: ticket.assignedToId,
       history: ticket.history ?? [
@@ -53,7 +57,7 @@ function normalizeCrmData(data: CrmData, initialData: CrmData): CrmData {
         id: 'system',
         name: 'Sistema',
         email: 'sistema@roqia.com',
-        role: 'admin',
+        role: 'superAdmin',
       },
     })),
   };

@@ -4,7 +4,7 @@ const systemCreator = {
   id: 'system',
   name: 'Sistema',
   email: 'sistema@roqia.com',
-  role: 'admin' as const,
+  role: 'superAdmin' as const,
 };
 
 export const initialData: CrmData = {
@@ -67,6 +67,7 @@ export const initialData: CrmData = {
       dueDay: 10,
       nextDueDate: '2026-06-10',
       status: 'Ativa',
+      serviceMode: 'partnership',
     },
     {
       id: 'customer-2',
@@ -78,6 +79,7 @@ export const initialData: CrmData = {
       dueDay: 5,
       nextDueDate: '2026-06-05',
       status: 'Pendente',
+      serviceMode: 'solo',
     },
   ],
   tasks: [

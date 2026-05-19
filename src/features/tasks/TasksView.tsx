@@ -10,6 +10,7 @@ interface TasksViewProps {
   customers: Customer[];
   team: TeamMember[];
   currentUser: Creator;
+  canCreate: boolean;
   onCreate: (task: Omit<CrmTask, 'id' | 'createdAt' | 'status' | 'createdBy'>, creator: Creator) => Promise<void>;
   onStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
 }
@@ -20,7 +21,7 @@ const statusTone: Record<TaskStatus, 'success' | 'warning' | 'neutral'> = {
   Concluida: 'success',
 };
 
-export function TasksView({ tasks, customers, team, currentUser, onCreate, onStatusChange }: TasksViewProps) {
+export function TasksView({ tasks, customers, team, currentUser, canCreate, onCreate, onStatusChange }: TasksViewProps) {
   const [form, setForm] = useState({
     title: '',
     type: 'RoqIA' as TaskType,
@@ -63,9 +64,10 @@ export function TasksView({ tasks, customers, team, currentUser, onCreate, onSta
 
   return (
     <section className="view-grid">
-      <div className="panel">
-        <SectionHeader title="Criacao de tarefas" description="Organize demandas de clientes, operacao interna, melhorias e prototipos." />
-        <form className="form-stack" onSubmit={handleSubmit}>
+      {canCreate && (
+        <div className="panel">
+          <SectionHeader title="Criacao de tarefas" description="Organize demandas de clientes, operacao interna, melhorias e prototipos." />
+          <form className="form-stack" onSubmit={handleSubmit}>
           <label>
             Tarefa
             <input
@@ -144,8 +146,9 @@ export function TasksView({ tasks, customers, team, currentUser, onCreate, onSta
             <CheckCircle2 size={18} aria-hidden="true" />
             Criar tarefa
           </button>
-        </form>
-      </div>
+          </form>
+        </div>
+      )}
 
       <div className="panel">
         <SectionHeader title="Agenda do time" description="Acompanhe o que esta pendente e quem esta responsavel." />

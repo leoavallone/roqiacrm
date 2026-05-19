@@ -11,9 +11,10 @@ interface TicketPortalViewProps {
 }
 
 export function TicketPortalView({ customers, currentUser, onBack, onCreate }: TicketPortalViewProps) {
+  const canChooseCustomer = currentUser.role === 'superAdmin' || currentUser.role === 'admin';
   const allowedCustomers =
-    currentUser.role === 'admin' ? customers : customers.filter((customer) => customer.id === currentUser.customerId);
-  const canOpenTicket = currentUser.role === 'admin' || allowedCustomers.length > 0;
+    canChooseCustomer ? customers : customers.filter((customer) => customer.id === currentUser.customerId);
+  const canOpenTicket = canChooseCustomer || allowedCustomers.length > 0;
   const [createdTicketTitle, setCreatedTicketTitle] = useState('');
   const [form, setForm] = useState({
     title: '',
@@ -46,7 +47,7 @@ export function TicketPortalView({ customers, currentUser, onBack, onCreate }: T
           </div>
           <button className="secondary-action" type="button" onClick={onBack}>
             <ArrowLeft size={16} aria-hidden="true" />
-            {currentUser.role === 'admin' ? 'Voltar ao CRM' : 'Sair'}
+            {canChooseCustomer ? 'Voltar ao CRM' : 'Sair'}
           </button>
         </header>
 
@@ -67,7 +68,7 @@ export function TicketPortalView({ customers, currentUser, onBack, onCreate }: T
               Cliente logado
               <select
                 required
-                disabled={currentUser.role !== 'admin'}
+                disabled={!canChooseCustomer}
                 value={form.clientName}
                 onChange={(event) => setForm({ ...form, clientName: event.target.value })}
               >

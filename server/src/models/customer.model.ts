@@ -10,6 +10,7 @@ const customerSchema = new Schema(
     dueDay: { type: Number, required: true, min: 1, max: 31 },
     nextDueDate: { type: Date, required: true },
     status: { type: String, enum: ['Ativa', 'Pendente', 'Vencida'], default: 'Ativa', required: true },
+    serviceMode: { type: String, enum: ['solo', 'partnership'], default: 'solo', required: true },
   },
   { timestamps: true },
 );

@@ -9,5 +9,5 @@ export const ticketsRoutes = Router();
 ticketsRoutes.use(authenticate);
 ticketsRoutes.get('/', asyncHandler(listTickets));
 ticketsRoutes.post('/', asyncHandler(createTicket));
-ticketsRoutes.patch('/:id', authorize('admin'), asyncHandler(updateTicket));
-ticketsRoutes.delete('/:id', authorize('admin'), asyncHandler(deleteTicket));
+ticketsRoutes.patch('/:id', authorize('superAdmin', 'admin', 'collaborator'), asyncHandler(updateTicket));
+ticketsRoutes.delete('/:id', authorize('superAdmin', 'admin'), asyncHandler(deleteTicket));

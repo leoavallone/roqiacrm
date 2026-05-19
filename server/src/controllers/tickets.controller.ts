@@ -29,6 +29,17 @@ export async function listTickets(req: Request, res: Response) {
   if (req.query.assignedToId === 'none') query.assignedToId = null;
   if (req.query.assignedToId && req.query.assignedToId !== 'none') query.assignedToId = req.query.assignedToId;
   if (req.user?.role === 'client') query.customerId = req.user.customerId;
+  if (req.user?.role === 'admin') {
+    const partnershipCustomers = await CustomerModel.find({ serviceMode: 'partnership' }).select('_id');
+    const customerIds = partnershipCustomers.map((customer) => customer._id.toString());
+
+    if (req.query.customerId && !customerIds.includes(String(req.query.customerId))) {
+      res.json({ tickets: [] });
+      return;
+    }
+
+    query.customerId = req.query.customerId ? req.query.customerId : { $in: customerIds };
+  }
 
   const tickets = await TicketModel.find(query)
     .populate('customerId', 'name')
@@ -41,9 +52,13 @@ export async function listTickets(req: Request, res: Response) {
 
 export async function createTicket(req: Request, res: Response) {
   if (!req.user) throw new HttpError(401, 'Usuario nao autenticado.');
+  if (req.user.role === 'collaborator') {
+    throw new HttpError(403, 'Colaborador acompanha chamados, mas nao abre chamados por clientes.');
+  }
 
   const data = createTicketSchema.parse(req.body);
-  const customerId = req.user.role === 'admin' ? data.customerId : req.user.customerId;
+  const canChooseCustomer = ['superAdmin', 'admin'].includes(req.user.role);
+  const customerId = canChooseCustomer ? data.customerId : req.user.customerId;
 
   if (!customerId) {
     throw new HttpError(400, 'Usuario sem cliente vinculado.');
@@ -53,6 +68,10 @@ export async function createTicket(req: Request, res: Response) {
 
   if (!customer) {
     throw new HttpError(404, 'Cliente nao encontrado.');
+  }
+
+  if (req.user.role === 'admin' && customer.serviceMode !== 'partnership') {
+    throw new HttpError(403, 'Admin acessa apenas clientes de parceria.');
   }
 
   const ticket = await TicketModel.create({
@@ -83,6 +102,14 @@ export async function updateTicket(req: Request, res: Response) {
     throw new HttpError(404, 'Chamado nao encontrado.');
   }
 
+  if (req.user.role === 'admin') {
+    const customer = await CustomerModel.findById(ticket.customerId).select('serviceMode');
+
+    if (customer?.serviceMode !== 'partnership') {
+      throw new HttpError(403, 'Admin acessa apenas clientes de parceria.');
+    }
+  }
+
   if (data.status && data.status !== ticket.status) {
     ticket.history.unshift({
       title: 'Status atualizado',
@@ -101,11 +128,20 @@ export async function updateTicket(req: Request, res: Response) {
 }
 
 export async function deleteTicket(req: Request, res: Response) {
-  const ticket = await TicketModel.findByIdAndDelete(req.params.id);
+  const ticket = await TicketModel.findById(req.params.id);
 
   if (!ticket) {
     throw new HttpError(404, 'Chamado nao encontrado.');
   }
 
+  if (req.user?.role === 'admin') {
+    const customer = await CustomerModel.findById(ticket.customerId).select('serviceMode');
+
+    if (customer?.serviceMode !== 'partnership') {
+      throw new HttpError(403, 'Admin acessa apenas clientes de parceria.');
+    }
+  }
+
+  await ticket.deleteOne();
   res.status(204).send();
 }

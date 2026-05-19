@@ -1,6 +1,9 @@
 import type { Creator, CrmData, CrmTask, Customer, TeamMember, Ticket, UserAccount } from './types';
 
 const TOKEN_KEY = 'roqiacrm:auth-token:v1';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ??
+  (window.location.protocol === 'file:' ? 'http://localhost:4000' : '');
 
 type ApiOptions = RequestInit & {
   token?: string | null;
@@ -37,10 +40,16 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(path, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch {
+    throw new Error('Nao foi possivel comunicar com o servidor. Verifique se a API esta rodando.');
+  }
 
   if (response.status === 204) {
     return undefined as T;
@@ -219,6 +228,7 @@ function normalizeCustomer(value: unknown): Customer {
     dueDay: Number(customer.dueDay ?? 1),
     nextDueDate: toDateInputValue(customer.nextDueDate),
     status: customer.status as Customer['status'],
+    serviceMode: (customer.serviceMode ?? 'solo') as Customer['serviceMode'],
   };
 }
 
@@ -292,7 +302,7 @@ function normalizeCreator(value: unknown): Creator {
       id: 'system',
       name: 'Sistema',
       email: 'sistema@roqia.com',
-      role: 'admin',
+      role: 'superAdmin',
     };
   }
 
@@ -300,9 +310,15 @@ function normalizeCreator(value: unknown): Creator {
     id: getId(creator),
     name: String(creator.name ?? 'Sistema'),
     email: String(creator.email ?? 'sistema@roqia.com'),
-    role: creator.role === 'client' ? 'client' : 'admin',
+    role: normalizeRole(creator.role),
     customerId: getRefId(creator.customerId as MongoRef),
   };
+}
+
+function normalizeRole(value: unknown): Creator['role'] {
+  return value === 'superAdmin' || value === 'admin' || value === 'collaborator' || value === 'client'
+    ? value
+    : 'client';
 }
 
 function getId(value: Record<string, unknown>): string {

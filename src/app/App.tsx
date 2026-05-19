@@ -64,6 +64,21 @@ export function App() {
     return <LoginView onLogin={auth.login} />;
   }
 
+  const isClient = auth.currentUser.role === 'client';
+  const isSuperAdmin = auth.currentUser.role === 'superAdmin';
+  const isAdmin = auth.currentUser.role === 'admin';
+  const canSeeCustomers = isSuperAdmin || isAdmin;
+  const canSeeFinance = isSuperAdmin || isAdmin;
+  const canSeeUsers = isSuperAdmin;
+  const canSeeTeam = isSuperAdmin;
+  const availableNavigation = navigation.filter((item) => {
+    if (item.key === 'customers') return canSeeCustomers;
+    if (item.key === 'finance') return canSeeFinance;
+    if (item.key === 'users') return canSeeUsers;
+    if (item.key === 'team') return canSeeTeam;
+    return true;
+  });
+
   const currentCreator: Creator = {
     id: auth.currentUser.id,
     name: auth.currentUser.name,
@@ -72,7 +87,7 @@ export function App() {
     customerId: auth.currentUser.customerId,
   };
 
-  if (auth.currentUser.role !== 'admin') {
+  if (isClient) {
     return (
       <main className="app-shell app-shell--portal" data-theme={theme}>
         <TicketPortalView
@@ -135,7 +150,7 @@ export function App() {
         </div>
 
         <nav className="navigation" aria-label="Navegacao principal">
-          {navigation.map((item) => {
+          {availableNavigation.map((item) => {
             const Icon = item.icon;
             return (
               <button
@@ -157,7 +172,7 @@ export function App() {
             <UserRound size={16} aria-hidden="true" />
             <div>
               <strong>{auth.currentUser.name}</strong>
-              <span>{auth.currentUser.role === 'admin' ? 'Administrador' : 'Cliente'}</span>
+              <span>{getRoleLabel(auth.currentUser.role)}</span>
             </div>
           </div>
           <button className="secondary-action" type="button" onClick={auth.logout}>
@@ -174,10 +189,12 @@ export function App() {
             <h1>Central de atendimento e assinaturas</h1>
           </div>
           <div className="topbar__actions">
-            <button className="primary-action" type="button" onClick={() => setActiveView('clientPortal')}>
-              <Plus size={18} aria-hidden="true" />
-              Abrir chamado
-            </button>
+            {(isSuperAdmin || isAdmin) && (
+              <button className="primary-action" type="button" onClick={() => setActiveView('clientPortal')}>
+                <Plus size={18} aria-hidden="true" />
+                Abrir chamado
+              </button>
+            )}
           </div>
         </header>
 
@@ -209,9 +226,10 @@ export function App() {
             onStatusChange={crm.updateTicketStatus}
           />
         )}
-        {activeView === 'customers' && (
+        {activeView === 'customers' && canSeeCustomers && (
           <CustomersView
             customers={crm.customers}
+            readOnly={!isSuperAdmin}
             onCreate={crm.addCustomer}
             onUpdate={crm.updateCustomer}
             onDelete={crm.deleteCustomer}
@@ -223,11 +241,12 @@ export function App() {
             tasks={crm.tasks}
             team={crm.team}
             currentUser={currentCreator}
+            canCreate={isSuperAdmin || isAdmin}
             onCreate={crm.addTask}
             onStatusChange={crm.updateTaskStatus}
           />
         )}
-        {activeView === 'team' && (
+        {activeView === 'team' && canSeeTeam && (
           <TeamView
             team={crm.team}
             onCreate={crm.addTeamMember}
@@ -235,8 +254,8 @@ export function App() {
             onDelete={crm.deleteTeamMember}
           />
         )}
-        {activeView === 'finance' && <FinanceView customers={crm.customers} />}
-        {activeView === 'users' && (
+        {activeView === 'finance' && canSeeFinance && <FinanceView customers={crm.customers} />}
+        {activeView === 'users' && canSeeUsers && (
           <UsersView
             accounts={auth.accounts}
             customers={crm.customers}
@@ -249,4 +268,15 @@ export function App() {
       </section>
     </main>
   );
+}
+
+function getRoleLabel(role: Creator['role']) {
+  const labels: Record<Creator['role'], string> = {
+    superAdmin: 'Super admin',
+    admin: 'Admin parceria',
+    collaborator: 'Colaborador',
+    client: 'Cliente',
+  };
+
+  return labels[role];
 }

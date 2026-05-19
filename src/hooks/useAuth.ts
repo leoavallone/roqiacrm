@@ -27,7 +27,7 @@ export function useAuth() {
     async function restoreSession() {
       try {
         const user = await fetchCurrentUser(activeToken);
-        const users = user.role === 'admin' ? await fetchUsers() : [user];
+        const users = user.role === 'superAdmin' ? await fetchUsers() : [user];
 
         if (!isMounted) {
           return;
@@ -62,7 +62,7 @@ export function useAuth() {
       const result = await loginWithApi(email, password);
       saveAuthToken(result.token);
       setToken(result.token);
-      setAccounts(result.user.role === 'admin' ? await fetchUsers() : [result.user]);
+      setAccounts(result.user.role === 'superAdmin' ? await fetchUsers() : [result.user]);
       setCurrentUserId(result.user.id);
       return { ok: true };
     } catch (error) {

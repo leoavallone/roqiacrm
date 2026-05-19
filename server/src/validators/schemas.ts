@@ -1,29 +1,24 @@
 import { z } from 'zod';
 
 export const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, 'ObjectId invalido.');
+const userRoleSchema = z.enum(['superAdmin', 'admin', 'collaborator', 'client']);
 
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
 
-export const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
 export const createUserSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(6),
-  role: z.enum(['admin', 'client']).default('client'),
+  role: userRoleSchema.default('client'),
   customerId: objectIdSchema.optional().or(z.literal('')),
 });
 
 export const updateUserSchema = z.object({
   name: z.string().min(2).optional(),
-  role: z.enum(['admin', 'client']).optional(),
+  role: userRoleSchema.optional(),
   customerId: objectIdSchema.optional().or(z.literal('')).nullable(),
 });
 
@@ -36,6 +31,7 @@ export const customerSchema = z.object({
   dueDay: z.coerce.number().min(1).max(31),
   nextDueDate: z.coerce.date(),
   status: z.enum(['Ativa', 'Pendente', 'Vencida']).default('Ativa'),
+  serviceMode: z.enum(['solo', 'partnership']).default('solo'),
 });
 
 export const teamMemberSchema = z.object({

@@ -15,6 +15,6 @@ export async function seedAdmin() {
     name: env.SEED_ADMIN_NAME,
     email: env.SEED_ADMIN_EMAIL,
     passwordHash,
-    role: 'admin',
+    role: 'superAdmin',
   });
 }

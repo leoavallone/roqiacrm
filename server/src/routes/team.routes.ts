@@ -6,8 +6,8 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const teamRoutes = Router();
 
-teamRoutes.use(authenticate, authorize('admin'));
+teamRoutes.use(authenticate, authorize('superAdmin', 'admin', 'collaborator'));
 teamRoutes.get('/', asyncHandler(listTeamMembers));
-teamRoutes.post('/', asyncHandler(createTeamMember));
-teamRoutes.patch('/:id', asyncHandler(updateTeamMember));
-teamRoutes.delete('/:id', asyncHandler(deleteTeamMember));
+teamRoutes.post('/', authorize('superAdmin'), asyncHandler(createTeamMember));
+teamRoutes.patch('/:id', authorize('superAdmin'), asyncHandler(updateTeamMember));
+teamRoutes.delete('/:id', authorize('superAdmin'), asyncHandler(deleteTeamMember));

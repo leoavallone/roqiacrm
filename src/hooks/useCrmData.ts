@@ -49,7 +49,7 @@ export function useCrmData(currentUser: UserAccount | null): CrmData & CrmAction
     const activeUser = currentUser;
 
     async function loadData() {
-      const nextData = activeUser.role === 'admin' ? await fetchCrmData() : await fetchPortalData();
+      const nextData = activeUser.role === 'client' ? await fetchPortalData() : await fetchCrmData();
 
       if (isMounted) {
         setData(nextData);

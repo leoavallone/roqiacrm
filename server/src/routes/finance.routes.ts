@@ -6,5 +6,5 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const financeRoutes = Router();
 
-financeRoutes.use(authenticate, authorize('admin'));
+financeRoutes.use(authenticate, authorize('superAdmin', 'admin'));
 financeRoutes.get('/summary', asyncHandler(getFinanceSummary));

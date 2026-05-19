@@ -3,7 +3,8 @@ export type TicketPriority = 'Baixa' | 'Media' | 'Alta' | 'Urgente';
 export type TaskStatus = 'Pendente' | 'Em andamento' | 'Concluida';
 export type TaskType = 'Cliente' | 'RoqIA' | 'Prototipo' | 'Melhoria';
 export type SubscriptionStatus = 'Ativa' | 'Pendente' | 'Vencida';
-export type UserRole = 'admin' | 'client';
+export type UserRole = 'superAdmin' | 'admin' | 'collaborator' | 'client';
+export type CustomerServiceMode = 'solo' | 'partnership';
 
 export interface UserAccount {
   id: string;
@@ -54,6 +55,7 @@ export interface Customer {
   dueDay: number;
   nextDueDate: string;
   status: SubscriptionStatus;
+  serviceMode: CustomerServiceMode;
 }
 
 export interface TeamMember {

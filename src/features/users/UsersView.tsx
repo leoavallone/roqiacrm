@@ -13,6 +13,13 @@ interface UsersViewProps {
   onCustomerChange: (accountId: string, customerId: string) => void;
 }
 
+const roleLabels: Record<UserRole, string> = {
+  superAdmin: 'Super admin',
+  admin: 'Admin parceria',
+  collaborator: 'Colaborador',
+  client: 'Cliente',
+};
+
 export function UsersView({ accounts, customers, currentUserId, onCreate, onRoleChange, onCustomerChange }: UsersViewProps) {
   const [message, setMessage] = useState('');
   const [form, setForm] = useState({
@@ -80,8 +87,10 @@ export function UsersView({ accounts, customers, currentUserId, onCreate, onRole
             <label>
               Permissao
               <select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value as UserRole })}>
+                <option value="superAdmin">Super admin</option>
+                <option value="admin">Admin parceria</option>
+                <option value="collaborator">Colaborador</option>
                 <option value="client">Cliente</option>
-                <option value="admin">Admin</option>
               </select>
             </label>
             <label>
@@ -113,7 +122,11 @@ export function UsersView({ accounts, customers, currentUserId, onCreate, onRole
           {accounts.map((account) => (
             <article className="record-card" key={account.id}>
               <div className="record-card__icon">
-                {account.role === 'admin' ? <ShieldCheck size={20} aria-hidden="true" /> : <UserRound size={20} aria-hidden="true" />}
+                {account.role === 'superAdmin' || account.role === 'admin' ? (
+                  <ShieldCheck size={20} aria-hidden="true" />
+                ) : (
+                  <UserRound size={20} aria-hidden="true" />
+                )}
               </div>
               <div className="record-card__content">
                 <div className="record-card__header">
@@ -121,7 +134,10 @@ export function UsersView({ accounts, customers, currentUserId, onCreate, onRole
                     <h3>{account.name}</h3>
                     <p>{account.email} · {getCustomerName(account.customerId)}</p>
                   </div>
-                  <StatusBadge label={account.role === 'admin' ? 'Admin' : 'Cliente'} tone={account.role === 'admin' ? 'success' : 'neutral'} />
+                  <StatusBadge
+                    label={roleLabels[account.role]}
+                    tone={account.role === 'superAdmin' || account.role === 'admin' ? 'success' : 'neutral'}
+                  />
                 </div>
                 <div className="record-actions">
                   <select
@@ -129,8 +145,10 @@ export function UsersView({ accounts, customers, currentUserId, onCreate, onRole
                     value={account.role}
                     onChange={(event) => onRoleChange(account.id, event.target.value as UserRole)}
                   >
+                    <option value="superAdmin">Super admin</option>
+                    <option value="admin">Admin parceria</option>
+                    <option value="collaborator">Colaborador</option>
                     <option value="client">Cliente</option>
-                    <option value="admin">Admin</option>
                   </select>
                   <select
                     disabled={account.id === currentUserId}

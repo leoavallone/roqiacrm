@@ -6,7 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const usersRoutes = Router();
 
-usersRoutes.use(authenticate, authorize('admin'));
+usersRoutes.use(authenticate, authorize('superAdmin'));
 usersRoutes.get('/', asyncHandler(listUsers));
 usersRoutes.post('/', asyncHandler(createUser));
 usersRoutes.patch('/:id', asyncHandler(updateUser));
