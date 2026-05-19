@@ -10,8 +10,8 @@ interface TasksViewProps {
   customers: Customer[];
   team: TeamMember[];
   currentUser: Creator;
-  onCreate: (task: Omit<CrmTask, 'id' | 'createdAt' | 'status' | 'createdBy'>, creator: Creator) => void;
-  onStatusChange: (taskId: string, status: TaskStatus) => void;
+  onCreate: (task: Omit<CrmTask, 'id' | 'createdAt' | 'status' | 'createdBy'>, creator: Creator) => Promise<void>;
+  onStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
 }
 
 const statusTone: Record<TaskStatus, 'success' | 'warning' | 'neutral'> = {
@@ -30,9 +30,9 @@ export function TasksView({ tasks, customers, team, currentUser, onCreate, onSta
     notes: '',
   });
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onCreate(
+    await onCreate(
       {
         ...form,
         customerName: form.type === 'Cliente' ? form.customerName : undefined,
@@ -174,7 +174,7 @@ export function TasksView({ tasks, customers, team, currentUser, onCreate, onSta
                     <span>{formatDate(task.dueDate)}</span>
                     <span>{isLate ? `${Math.abs(remainingDays)} dias atrasada` : `${remainingDays} dias`}</span>
                   </div>
-                  <select value={task.status} onChange={(event) => onStatusChange(task.id, event.target.value as TaskStatus)}>
+                  <select value={task.status} onChange={(event) => void onStatusChange(task.id, event.target.value as TaskStatus)}>
                     <option>Pendente</option>
                     <option>Em andamento</option>
                     <option>Concluida</option>

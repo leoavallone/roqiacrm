@@ -3,16 +3,16 @@ import { FormEvent, useState } from 'react';
 import roqiaSymbol from '../../../favicon.png';
 
 interface LoginViewProps {
-  onLogin: (email: string, password: string) => { ok: true } | { ok: false; message: string };
+  onLogin: (email: string, password: string) => Promise<{ ok: true } | { ok: false; message: string }>;
 }
 
 export function LoginView({ onLogin }: LoginViewProps) {
   const [message, setMessage] = useState('');
   const [loginForm, setLoginForm] = useState({ email: 'admin@roqia.com', password: 'admin123' });
 
-  function handleLogin(event: FormEvent<HTMLFormElement>) {
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const result = onLogin(loginForm.email, loginForm.password);
+    const result = await onLogin(loginForm.email, loginForm.password);
     if (!result.ok) {
       setMessage(result.message);
     }

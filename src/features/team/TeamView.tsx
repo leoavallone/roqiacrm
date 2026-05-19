@@ -5,9 +5,9 @@ import type { TeamMember } from '../../core/types';
 
 interface TeamViewProps {
   team: TeamMember[];
-  onCreate: (member: Omit<TeamMember, 'id'>) => void;
-  onUpdate: (memberId: string, member: Omit<TeamMember, 'id'>) => void;
-  onDelete: (memberId: string) => void;
+  onCreate: (member: Omit<TeamMember, 'id'>) => Promise<void>;
+  onUpdate: (memberId: string, member: Omit<TeamMember, 'id'>) => Promise<void>;
+  onDelete: (memberId: string) => Promise<void>;
 }
 
 export function TeamView({ team, onCreate, onUpdate, onDelete }: TeamViewProps) {
@@ -15,9 +15,9 @@ export function TeamView({ team, onCreate, onUpdate, onDelete }: TeamViewProps) 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: '', role: '' });
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onCreate(form);
+    await onCreate(form);
     setForm({ name: '', role: '' });
   }
 
@@ -26,8 +26,8 @@ export function TeamView({ team, onCreate, onUpdate, onDelete }: TeamViewProps) 
     setEditForm({ name: member.name, role: member.role });
   }
 
-  function saveEditing(memberId: string) {
-    onUpdate(memberId, editForm);
+  async function saveEditing(memberId: string) {
+    await onUpdate(memberId, editForm);
     setEditingId(null);
   }
 
@@ -75,7 +75,7 @@ export function TeamView({ team, onCreate, onUpdate, onDelete }: TeamViewProps) 
                       Funcao
                       <input value={editForm.role} onChange={(event) => setEditForm({ ...editForm, role: event.target.value })} />
                     </label>
-                    <button className="secondary-action" type="button" onClick={() => saveEditing(member.id)}>
+                    <button className="secondary-action" type="button" onClick={() => void saveEditing(member.id)}>
                       <Save size={16} aria-hidden="true" />
                       Salvar
                     </button>
@@ -90,7 +90,7 @@ export function TeamView({ team, onCreate, onUpdate, onDelete }: TeamViewProps) 
                       <button className="icon-action" type="button" onClick={() => startEditing(member)} title="Editar responsavel">
                         <Edit3 size={16} aria-hidden="true" />
                       </button>
-                      <button className="icon-action" type="button" onClick={() => onDelete(member.id)} title="Remover responsavel">
+                      <button className="icon-action" type="button" onClick={() => void onDelete(member.id)} title="Remover responsavel">
                         <Trash2 size={16} aria-hidden="true" />
                       </button>
                     </div>

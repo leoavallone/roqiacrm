@@ -7,9 +7,9 @@ import { StatusBadge } from '../../components/StatusBadge';
 
 interface CustomersViewProps {
   customers: Customer[];
-  onCreate: (customer: Omit<Customer, 'id'>) => void;
-  onUpdate: (customerId: string, customer: Omit<Customer, 'id'>) => void;
-  onDelete: (customerId: string) => void;
+  onCreate: (customer: Omit<Customer, 'id'>) => Promise<void>;
+  onUpdate: (customerId: string, customer: Omit<Customer, 'id'>) => Promise<void>;
+  onDelete: (customerId: string) => Promise<void>;
 }
 
 const statusTone: Record<SubscriptionStatus, 'success' | 'warning' | 'danger'> = {
@@ -43,9 +43,9 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
     status: 'Ativa' as SubscriptionStatus,
   });
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onCreate(form);
+    await onCreate(form);
     setForm((current) => ({ ...current, name: '', contact: '', email: '' }));
   }
 
@@ -63,8 +63,8 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
     });
   }
 
-  function saveEditing(customerId: string) {
-    onUpdate(customerId, editForm);
+  async function saveEditing(customerId: string) {
+    await onUpdate(customerId, editForm);
     setEditingId(null);
   }
 
@@ -252,7 +252,7 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
                         </select>
                       </label>
                       <div className="record-actions">
-                        <button className="secondary-action" type="button" onClick={() => saveEditing(customer.id)}>
+                        <button className="secondary-action" type="button" onClick={() => void saveEditing(customer.id)}>
                           <Save size={16} aria-hidden="true" />
                           Salvar
                         </button>
@@ -286,7 +286,7 @@ export function CustomersView({ customers, onCreate, onUpdate, onDelete }: Custo
                           <Edit3 size={16} aria-hidden="true" />
                           Editar
                         </button>
-                        <button className="secondary-action" type="button" onClick={() => onDelete(customer.id)}>
+                        <button className="secondary-action" type="button" onClick={() => void onDelete(customer.id)}>
                           <Trash2 size={16} aria-hidden="true" />
                           Excluir
                         </button>

@@ -6,8 +6,9 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const customersRoutes = Router();
 
-customersRoutes.use(authenticate, authorize('admin'));
+customersRoutes.use(authenticate);
 customersRoutes.get('/', asyncHandler(listCustomers));
+customersRoutes.use(authorize('admin'));
 customersRoutes.post('/', asyncHandler(createCustomer));
 customersRoutes.patch('/:id', asyncHandler(updateCustomer));
 customersRoutes.delete('/:id', asyncHandler(deleteCustomer));

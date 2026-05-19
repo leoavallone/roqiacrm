@@ -29,7 +29,7 @@ const navigation = [
 
 export function App() {
   const auth = useAuth();
-  const crm = useCrmData();
+  const crm = useCrmData(auth.currentUser);
   const [activeView, setActiveView] = useState<ViewKey>('tickets');
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = window.localStorage.getItem('roqiacrm:theme');
@@ -51,6 +51,16 @@ export function App() {
   }
 
   if (!auth.currentUser) {
+    if (auth.isRestoringSession) {
+      return (
+        <main className="login-shell app-shell" data-theme="dark">
+          <section className="login-panel">
+            <p>Carregando sessao...</p>
+          </section>
+        </main>
+      );
+    }
+
     return <LoginView onLogin={auth.login} />;
   }
 

@@ -8,7 +8,7 @@ interface UsersViewProps {
   accounts: UserAccount[];
   customers: Customer[];
   currentUserId: string;
-  onCreate: (account: Omit<UserAccount, 'id'>) => { ok: true } | { ok: false; message: string };
+  onCreate: (account: Omit<UserAccount, 'id'>) => Promise<{ ok: true } | { ok: false; message: string }>;
   onRoleChange: (accountId: string, role: UserRole) => void;
   onCustomerChange: (accountId: string, customerId: string) => void;
 }
@@ -23,9 +23,9 @@ export function UsersView({ accounts, customers, currentUserId, onCreate, onRole
     customerId: '',
   });
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const result = onCreate({
+    const result = await onCreate({
       ...form,
       customerId: form.customerId || undefined,
     });

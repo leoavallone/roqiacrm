@@ -35,7 +35,7 @@ export function createApp() {
   
   // Catch-all route to serve the frontend's index.html for client-side routing
   app.get('*', (_req, res) => {
-    res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'dist', 'app.html'));
   });
 
   app.use(notFound);

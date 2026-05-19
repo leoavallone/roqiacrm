@@ -1,65 +1,109 @@
-import { useMemo, useState } from 'react';
-import { clearSession, loadAccounts, loadSession, saveAccounts, saveSession } from '../core/auth';
+import { useEffect, useMemo, useState } from 'react';
+import { clearAuthToken, createUser, fetchCurrentUser, fetchUsers, loadAuthToken, loginWithApi, saveAuthToken, updateUser } from '../core/api';
 import type { UserAccount } from '../core/types';
 
 type LoginResult = { ok: true } | { ok: false; message: string };
 
 export function useAuth() {
-  const [accounts, setAccounts] = useState<UserAccount[]>(() => loadAccounts());
-  const [currentUserId, setCurrentUserId] = useState<string | null>(() => loadSession());
+  const [accounts, setAccounts] = useState<UserAccount[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => loadAuthToken());
+  const [isRestoringSession, setIsRestoringSession] = useState(Boolean(token));
 
   const currentUser = useMemo(
     () => accounts.find((account) => account.id === currentUserId) ?? null,
     [accounts, currentUserId],
   );
 
-  function login(email: string, password: string): LoginResult {
-    const account = accounts.find(
-      (candidate) => candidate.email.toLowerCase() === email.toLowerCase() && candidate.password === password,
-    );
-
-    if (!account) {
-      return { ok: false, message: 'E-mail ou senha invalidos.' };
+  useEffect(() => {
+    if (!token) {
+      setIsRestoringSession(false);
+      return;
     }
 
-    saveSession(account.id);
-    setCurrentUserId(account.id);
-    return { ok: true };
-  }
+    let isMounted = true;
+    const activeToken = token;
 
-  function createAccount(account: Omit<UserAccount, 'id'>): LoginResult {
-    const emailAlreadyExists = accounts.some((candidate) => candidate.email.toLowerCase() === account.email.toLowerCase());
+    async function restoreSession() {
+      try {
+        const user = await fetchCurrentUser(activeToken);
+        const users = user.role === 'admin' ? await fetchUsers() : [user];
 
-    if (emailAlreadyExists) {
-      return { ok: false, message: 'Ja existe uma conta com esse e-mail.' };
+        if (!isMounted) {
+          return;
+        }
+
+        setAccounts(mergeAccounts(users, user));
+        setCurrentUserId(user.id);
+      } catch {
+        clearAuthToken();
+
+        if (isMounted) {
+          setToken(null);
+          setAccounts([]);
+          setCurrentUserId(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsRestoringSession(false);
+        }
+      }
     }
 
-    const userAccount: UserAccount = {
-      ...account,
-      id: crypto.randomUUID(),
+    void restoreSession();
+
+    return () => {
+      isMounted = false;
     };
-    const nextAccounts = [userAccount, ...accounts];
-    saveAccounts(nextAccounts);
-    setAccounts(nextAccounts);
-    return { ok: true };
+  }, [token]);
+
+  async function login(email: string, password: string): Promise<LoginResult> {
+    try {
+      const result = await loginWithApi(email, password);
+      saveAuthToken(result.token);
+      setToken(result.token);
+      setAccounts(result.user.role === 'admin' ? await fetchUsers() : [result.user]);
+      setCurrentUserId(result.user.id);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, message: getErrorMessage(error) };
+    }
   }
 
-  function updateAccountRole(accountId: string, role: UserAccount['role']) {
-    const nextAccounts = accounts.map((account) => (account.id === accountId ? { ...account, role } : account));
-    saveAccounts(nextAccounts);
-    setAccounts(nextAccounts);
+  async function createAccount(account: Omit<UserAccount, 'id'>): Promise<LoginResult> {
+    try {
+      const userAccount = await createUser(account);
+      setAccounts((current) => [userAccount, ...current]);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, message: getErrorMessage(error) };
+    }
   }
 
-  function updateAccountCustomer(accountId: string, customerId: string) {
-    const nextAccounts = accounts.map((account) => (account.id === accountId ? { ...account, customerId } : account));
-    saveAccounts(nextAccounts);
-    setAccounts(nextAccounts);
+  async function updateAccountRole(accountId: string, role: UserAccount['role']) {
+    const updatedUser = await updateUser(accountId, { role });
+    setAccounts((current) => current.map((account) => (account.id === accountId ? updatedUser : account)));
+  }
+
+  async function updateAccountCustomer(accountId: string, customerId: string) {
+    const updatedUser = await updateUser(accountId, { customerId });
+    setAccounts((current) => current.map((account) => (account.id === accountId ? updatedUser : account)));
   }
 
   function logout() {
-    clearSession();
+    clearAuthToken();
+    setToken(null);
+    setAccounts([]);
     setCurrentUserId(null);
   }
 
-  return { accounts, currentUser, login, createAccount, updateAccountRole, updateAccountCustomer, logout };
+  return { accounts, currentUser, isRestoringSession, login, createAccount, updateAccountRole, updateAccountCustomer, logout };
+}
+
+function mergeAccounts(accounts: UserAccount[], currentUser: UserAccount): UserAccount[] {
+  return accounts.some((account) => account.id === currentUser.id) ? accounts : [currentUser, ...accounts];
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Nao foi possivel comunicar com o servidor.';
 }

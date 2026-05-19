@@ -7,7 +7,7 @@ interface TicketPortalViewProps {
   customers: Customer[];
   currentUser: Creator;
   onBack: () => void;
-  onCreate: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'status' | 'number' | 'history' | 'createdBy'>, creator: Creator) => void;
+  onCreate: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'status' | 'number' | 'history' | 'createdBy'>, creator: Creator) => Promise<void>;
 }
 
 export function TicketPortalView({ customers, currentUser, onBack, onCreate }: TicketPortalViewProps) {
@@ -23,12 +23,12 @@ export function TicketPortalView({ customers, currentUser, onBack, onCreate }: T
     description: '',
   });
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canOpenTicket) {
       return;
     }
-    onCreate(form, currentUser);
+    await onCreate(form, currentUser);
     setCreatedTicketTitle(form.title);
     setForm((current) => ({ ...current, title: '', category: 'Suporte', priority: 'Media', description: '' }));
   }

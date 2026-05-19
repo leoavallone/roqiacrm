@@ -3,8 +3,14 @@ import { CustomerModel } from '../models/customer.model.js';
 import { customerSchema } from '../validators/schemas.js';
 import { HttpError } from '../utils/httpError.js';
 
-export async function listCustomers(_req: Request, res: Response) {
-  const customers = await CustomerModel.find().sort({ createdAt: -1 });
+export async function listCustomers(req: Request, res: Response) {
+  if (req.user?.role === 'client' && !req.user.customerId) {
+    res.json({ customers: [] });
+    return;
+  }
+
+  const query = req.user?.role === 'client' ? { _id: req.user.customerId } : {};
+  const customers = await CustomerModel.find(query).sort({ createdAt: -1 });
   res.json({ customers });
 }
 

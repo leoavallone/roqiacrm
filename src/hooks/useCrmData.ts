@@ -1,160 +1,153 @@
 import { useEffect, useMemo, useState } from 'react';
-import { initialData } from '../data/initialData';
-import { loadCrmData, saveCrmData } from '../core/storage';
-import type { Creator, CrmData, CrmTask, Customer, TeamMember, Ticket } from '../core/types';
+import {
+  createCustomer as createCustomerRequest,
+  createTask as createTaskRequest,
+  createTeamMember as createTeamMemberRequest,
+  createTicket as createTicketRequest,
+  deleteCustomer as deleteCustomerRequest,
+  deleteTeamMember as deleteTeamMemberRequest,
+  fetchCrmData,
+  fetchPortalData,
+  updateCustomer as updateCustomerRequest,
+  updateTask as updateTaskRequest,
+  updateTeamMember as updateTeamMemberRequest,
+  updateTicket as updateTicketRequest,
+} from '../core/api';
+import type { Creator, CrmData, CrmTask, Customer, TeamMember, Ticket, UserAccount } from '../core/types';
 
 type CrmAction = {
-  addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'status' | 'number' | 'history' | 'createdBy'>, creator: Creator) => void;
-  addCustomer: (customer: Omit<Customer, 'id'>) => void;
-  updateCustomer: (customerId: string, customer: Omit<Customer, 'id'>) => void;
-  deleteCustomer: (customerId: string) => void;
-  addTask: (task: Omit<CrmTask, 'id' | 'createdAt' | 'status' | 'createdBy'>, creator: Creator) => void;
-  addTeamMember: (member: Omit<TeamMember, 'id'>) => void;
-  updateTeamMember: (memberId: string, member: Omit<TeamMember, 'id'>) => void;
-  deleteTeamMember: (memberId: string) => void;
-  updateTicketStatus: (ticketId: string, status: Ticket['status']) => void;
-  updateTicketAssignee: (ticketId: string, assignedToId: string) => void;
-  updateTaskStatus: (taskId: string, status: CrmTask['status']) => void;
+  addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'status' | 'number' | 'history' | 'createdBy'>, creator: Creator) => Promise<void>;
+  addCustomer: (customer: Omit<Customer, 'id'>) => Promise<void>;
+  updateCustomer: (customerId: string, customer: Omit<Customer, 'id'>) => Promise<void>;
+  deleteCustomer: (customerId: string) => Promise<void>;
+  addTask: (task: Omit<CrmTask, 'id' | 'createdAt' | 'status' | 'createdBy'>, creator: Creator) => Promise<void>;
+  addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
+  updateTeamMember: (memberId: string, member: Omit<TeamMember, 'id'>) => Promise<void>;
+  deleteTeamMember: (memberId: string) => Promise<void>;
+  updateTicketStatus: (ticketId: string, status: Ticket['status']) => Promise<void>;
+  updateTicketAssignee: (ticketId: string, assignedToId: string) => Promise<void>;
+  updateTaskStatus: (taskId: string, status: CrmTask['status']) => Promise<void>;
 };
 
-export function useCrmData(): CrmData & CrmAction {
-  const [data, setData] = useState<CrmData>(() => loadCrmData(initialData));
+const emptyData: CrmData = {
+  tickets: [],
+  customers: [],
+  tasks: [],
+  team: [],
+};
+
+export function useCrmData(currentUser: UserAccount | null): CrmData & CrmAction {
+  const [data, setData] = useState<CrmData>(emptyData);
 
   useEffect(() => {
-    saveCrmData(data);
-  }, [data]);
+    if (!currentUser) {
+      setData(emptyData);
+      return;
+    }
+
+    let isMounted = true;
+    const activeUser = currentUser;
+
+    async function loadData() {
+      const nextData = activeUser.role === 'admin' ? await fetchCrmData() : await fetchPortalData();
+
+      if (isMounted) {
+        setData(nextData);
+      }
+    }
+
+    void loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser]);
 
   return useMemo(
     () => ({
       ...data,
-      addTicket(ticket, creator) {
+      async addTicket(ticket) {
+        const customerId = data.customers.find((customer) => customer.name === ticket.clientName)?.id;
+        const createdTicket = await createTicketRequest(ticket, customerId);
         setData((current) => ({
           ...current,
-          tickets: [
-            {
-              ...ticket,
-              id: crypto.randomUUID(),
-              number: getNextTicketNumber(current.tickets),
-              status: 'Aberto',
-              createdAt: new Date().toISOString().slice(0, 10),
-              createdBy: creator,
-              history: [
-                {
-                  id: crypto.randomUUID(),
-                  date: new Date().toISOString().slice(0, 10),
-                  title: 'Chamado aberto',
-                  description: ticket.description,
-                },
-              ],
-            },
-            ...current.tickets,
-          ],
+          tickets: [{ ...createdTicket, clientName: ticket.clientName }, ...current.tickets],
         }));
       },
-      addCustomer(customer) {
+      async addCustomer(customer) {
+        const createdCustomer = await createCustomerRequest(customer);
         setData((current) => ({
           ...current,
-          customers: [{ ...customer, id: crypto.randomUUID() }, ...current.customers],
+          customers: [createdCustomer, ...current.customers],
         }));
       },
-      updateCustomer(customerId, customer) {
+      async updateCustomer(customerId, customer) {
+        const updatedCustomer = await updateCustomerRequest(customerId, customer);
         setData((current) => ({
           ...current,
           customers: current.customers.map((currentCustomer) =>
-            currentCustomer.id === customerId ? { ...currentCustomer, ...customer } : currentCustomer,
+            currentCustomer.id === customerId ? updatedCustomer : currentCustomer,
           ),
         }));
       },
-      deleteCustomer(customerId) {
+      async deleteCustomer(customerId) {
+        await deleteCustomerRequest(customerId);
         setData((current) => ({
           ...current,
           customers: current.customers.filter((customer) => customer.id !== customerId),
         }));
       },
-      addTask(task, creator) {
+      async addTask(task) {
+        const customerId = data.customers.find((customer) => customer.name === task.customerName)?.id;
+        const createdTask = await createTaskRequest(task, customerId);
         setData((current) => ({
           ...current,
-          tasks: [
-            {
-              ...task,
-              id: crypto.randomUUID(),
-              status: 'Pendente',
-              createdAt: new Date().toISOString().slice(0, 10),
-              createdBy: creator,
-            },
-            ...current.tasks,
-          ],
+          tasks: [{ ...createdTask, customerName: task.customerName }, ...current.tasks],
         }));
       },
-      addTeamMember(member) {
+      async addTeamMember(member) {
+        const createdMember = await createTeamMemberRequest(member);
         setData((current) => ({
           ...current,
-          team: [{ ...member, id: crypto.randomUUID() }, ...current.team],
+          team: [createdMember, ...current.team],
         }));
       },
-      updateTeamMember(memberId, member) {
+      async updateTeamMember(memberId, member) {
+        const updatedMember = await updateTeamMemberRequest(memberId, member);
         setData((current) => ({
           ...current,
-          team: current.team.map((teamMember) => (teamMember.id === memberId ? { ...teamMember, ...member } : teamMember)),
+          team: current.team.map((teamMember) => (teamMember.id === memberId ? updatedMember : teamMember)),
         }));
       },
-      deleteTeamMember(memberId) {
+      async deleteTeamMember(memberId) {
+        await deleteTeamMemberRequest(memberId);
         setData((current) => ({
           ...current,
           team: current.team.filter((teamMember) => teamMember.id !== memberId),
         }));
       },
-      updateTicketStatus(ticketId, status) {
+      async updateTicketStatus(ticketId, status) {
+        const updatedTicket = await updateTicketRequest(ticketId, { status });
         setData((current) => ({
           ...current,
-          tickets: current.tickets.map((ticket) => {
-            if (ticket.id !== ticketId || ticket.status === status) {
-              return ticket;
-            }
-
-            return {
-              ...ticket,
-              status,
-              history: [
-                {
-                  id: crypto.randomUUID(),
-                  date: new Date().toISOString().slice(0, 10),
-                  title: 'Status atualizado',
-                  description: `Status alterado de ${ticket.status} para ${status}.`,
-                },
-                ...ticket.history,
-              ],
-            };
-          }),
+          tickets: current.tickets.map((ticket) => (ticket.id === ticketId ? { ...updatedTicket, clientName: ticket.clientName } : ticket)),
         }));
       },
-      updateTicketAssignee(ticketId, assignedToId) {
+      async updateTicketAssignee(ticketId, assignedToId) {
+        const updatedTicket = await updateTicketRequest(ticketId, { assignedToId });
         setData((current) => ({
           ...current,
-          tickets: current.tickets.map((ticket) => {
-            if (ticket.id !== ticketId) {
-              return ticket;
-            }
-
-            return {
-              ...ticket,
-              assignedToId: assignedToId || undefined,
-            };
-          }),
+          tickets: current.tickets.map((ticket) => (ticket.id === ticketId ? { ...updatedTicket, clientName: ticket.clientName } : ticket)),
         }));
       },
-      updateTaskStatus(taskId, status) {
+      async updateTaskStatus(taskId, status) {
+        const updatedTask = await updateTaskRequest(taskId, { status });
         setData((current) => ({
           ...current,
-          tasks: current.tasks.map((task) => (task.id === taskId ? { ...task, status } : task)),
+          tasks: current.tasks.map((task) => (task.id === taskId ? { ...updatedTask, customerName: task.customerName } : task)),
         }));
       },
     }),
     [data],
   );
-}
-
-function getNextTicketNumber(tickets: Ticket[]): number {
-  const highestNumber = tickets.reduce((highest, ticket) => Math.max(highest, ticket.number), 1000);
-  return highestNumber + 1;
 }

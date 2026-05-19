@@ -8,8 +8,8 @@ interface TicketsViewProps {
   tickets: Ticket[];
   customers: Customer[];
   team: TeamMember[];
-  onAssigneeChange: (ticketId: string, assignedToId: string) => void;
-  onStatusChange: (ticketId: string, status: TicketStatus) => void;
+  onAssigneeChange: (ticketId: string, assignedToId: string) => Promise<void>;
+  onStatusChange: (ticketId: string, status: TicketStatus) => Promise<void>;
 }
 
 export function TicketsView({ tickets, customers, team, onAssigneeChange, onStatusChange }: TicketsViewProps) {
@@ -150,7 +150,7 @@ export function TicketsView({ tickets, customers, team, onAssigneeChange, onStat
                     <select
                       aria-label={`Responsavel do chamado ${ticket.number}`}
                       value={ticket.assignedToId ?? ''}
-                      onChange={(event) => onAssigneeChange(ticket.id, event.target.value)}
+                      onChange={(event) => void onAssigneeChange(ticket.id, event.target.value)}
                     >
                       <option value="">Sem responsavel</option>
                       {team.map((member) => (
@@ -165,7 +165,7 @@ export function TicketsView({ tickets, customers, team, onAssigneeChange, onStat
                       aria-label={`Status do chamado ${ticket.number}`}
                       value={ticket.status}
                       onClick={(event) => event.stopPropagation()}
-                      onChange={(event) => onStatusChange(ticket.id, event.target.value as TicketStatus)}
+                      onChange={(event) => void onStatusChange(ticket.id, event.target.value as TicketStatus)}
                     >
                       <option>Aberto</option>
                       <option>Em andamento</option>
