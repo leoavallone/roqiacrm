@@ -18,7 +18,7 @@ export function createApp() {
 
   app.use(
     cors({
-      origin: parseCorsOrigins(env.CORS_ORIGIN),
+      origin: isOriginAllowed,
       credentials: true,
     }),
   );
@@ -53,11 +53,27 @@ export function createApp() {
   return app;
 }
 
-function parseCorsOrigins(value: string) {
-  const origins = value
+function isOriginAllowed(origin: string | undefined, callback: (error: Error | null, allowed?: boolean) => void) {
+  if (!origin) {
+    callback(null, true);
+    return;
+  }
+
+  const allowedOrigins = env.CORS_ORIGIN
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-  return origins.length > 1 ? origins : origins[0];
+  allowedOrigins.push('https://crm.roqia.com.br');
+
+  if (allowedOrigins.some((allowedOrigin) => normalizeOrigin(allowedOrigin) === normalizeOrigin(origin))) {
+    callback(null, true);
+    return;
+  }
+
+  callback(null, false);
+}
+
+function normalizeOrigin(origin: string) {
+  return origin.replace(/\/$/, '').toLowerCase();
 }
