@@ -72,6 +72,7 @@ export interface CrmTask {
   ownerId: string;
   dueDate: string;
   status: TaskStatus;
+  description: string;
   notes: string;
   createdAt: string;
   createdBy: Creator;

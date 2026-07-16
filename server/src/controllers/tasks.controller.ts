@@ -46,8 +46,8 @@ export async function createTask(req: Request, res: Response) {
 export async function updateTask(req: Request, res: Response) {
   const data = updateTaskSchema.parse(req.body);
 
-  if (req.user?.role === 'collaborator' && Object.keys(data).some((key) => key !== 'status')) {
-    throw new HttpError(403, 'Colaborador pode alterar apenas o status da tarefa.');
+  if (req.user?.role === 'collaborator' && Object.keys(data).some((key) => key !== 'status' && key !== 'notes')) {
+    throw new HttpError(403, 'Colaborador pode alterar apenas o status e adicionar observacoes na tarefa.');
   }
 
   const task = await TaskModel.findById(req.params.id);

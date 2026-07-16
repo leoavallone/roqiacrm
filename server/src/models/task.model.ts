@@ -8,6 +8,7 @@ const taskSchema = new Schema(
     ownerId: { type: Schema.Types.ObjectId, ref: 'TeamMember', required: true },
     dueDate: { type: Date, required: true },
     status: { type: String, enum: ['Pendente', 'Em andamento', 'Impedimento', 'Concluida'], default: 'Pendente', required: true },
+    description: { type: String, default: '' },
     notes: { type: String, default: '' },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },

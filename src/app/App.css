@@ -377,6 +377,7 @@
 .kanban-card__type { border-radius: 999px; background: var(--accent-soft); color: var(--accent); padding: 4px 8px; font-size: .68rem; font-weight: 900; }
 .kanban-card h4 { color: var(--ink); font-size: .96rem; line-height: 1.35; }
 .kanban-card p { display: -webkit-box; overflow: hidden; color: var(--muted); font-size: .82rem; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.kanban-card .kanban-card__note { border-left: 2px solid var(--stage); padding-left: 8px; }
 .kanban-card__meta { justify-content: space-between; gap: 8px; color: var(--muted); font-size: .76rem; }
 .kanban-card__meta span { display: inline-flex; align-items: center; gap: 5px; }
 .kanban-card__due--late { color: var(--danger); font-weight: 800; }

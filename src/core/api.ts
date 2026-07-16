@@ -201,13 +201,13 @@ export async function createTask(task: Omit<CrmTask, 'id' | 'createdAt' | 'statu
       customerId,
       ownerId: task.ownerId,
       dueDate: task.dueDate,
-      notes: task.notes,
+      description: task.description,
     }),
   });
   return normalizeTask(response.task);
 }
 
-export async function updateTask(taskId: string, data: Partial<Pick<CrmTask, 'status' | 'ownerId'>>): Promise<CrmTask> {
+export async function updateTask(taskId: string, data: Partial<Pick<CrmTask, 'status' | 'ownerId' | 'notes'>>): Promise<CrmTask> {
   const response = await apiRequest<{ task: unknown }>(`/api/tasks/${taskId}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
@@ -269,6 +269,8 @@ function normalizeTask(value: unknown): CrmTask {
   const task = value as Record<string, unknown>;
   const customerRef = task.customerId as MongoRef;
 
+  const hasDescription = typeof task.description === 'string';
+
   return {
     id: getId(task),
     title: String(task.title ?? ''),
@@ -277,7 +279,8 @@ function normalizeTask(value: unknown): CrmTask {
     ownerId: getRefId(task.ownerId as MongoRef) ?? '',
     dueDate: toDateInputValue(task.dueDate),
     status: task.status as CrmTask['status'],
-    notes: String(task.notes ?? ''),
+    description: String(hasDescription ? task.description : task.notes ?? ''),
+    notes: String(hasDescription ? task.notes ?? '' : ''),
     createdAt: toDateInputValue(task.createdAt),
     createdBy: normalizeCreator(task.createdBy),
   };

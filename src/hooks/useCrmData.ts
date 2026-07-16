@@ -26,7 +26,7 @@ type CrmAction = {
   deleteTeamMember: (memberId: string) => Promise<void>;
   updateTicketStatus: (ticketId: string, status: Ticket['status']) => Promise<void>;
   updateTicketAssignee: (ticketId: string, assignedToId: string) => Promise<void>;
-  updateTaskStatus: (taskId: string, status: CrmTask['status']) => Promise<void>;
+  updateTaskStatus: (taskId: string, status: CrmTask['status'], notes?: string) => Promise<void>;
   updateTaskOwner: (taskId: string, ownerId: string) => Promise<void>;
 };
 
@@ -141,8 +141,8 @@ export function useCrmData(currentUser: UserAccount | null): CrmData & CrmAction
           tickets: current.tickets.map((ticket) => (ticket.id === ticketId ? { ...updatedTicket, clientName: ticket.clientName } : ticket)),
         }));
       },
-      async updateTaskStatus(taskId, status) {
-        const updatedTask = await updateTaskRequest(taskId, { status });
+      async updateTaskStatus(taskId, status, notes) {
+        const updatedTask = await updateTaskRequest(taskId, { status, ...(notes ? { notes } : {}) });
         setData((current) => ({
           ...current,
           tasks: current.tasks.map((task) => (task.id === taskId ? { ...updatedTask, customerName: task.customerName } : task)),

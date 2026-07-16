@@ -59,7 +59,7 @@ export const createTaskSchema = z.object({
   customerId: objectIdSchema.optional().or(z.literal('')).nullable(),
   ownerId: objectIdSchema,
   dueDate: z.coerce.date(),
-  notes: z.string().default(''),
+  description: z.string().default(''),
 });
 
 export const updateTaskSchema = z.object({
@@ -69,5 +69,6 @@ export const updateTaskSchema = z.object({
   ownerId: objectIdSchema.optional(),
   dueDate: z.coerce.date().optional(),
   status: z.enum(['Pendente', 'Em andamento', 'Impedimento', 'Concluida']).optional(),
+  description: z.string().optional(),
   notes: z.string().optional(),
 });

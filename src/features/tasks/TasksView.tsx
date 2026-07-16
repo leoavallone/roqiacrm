@@ -12,7 +12,7 @@ interface TasksViewProps {
   canCreate: boolean;
   canAssign: boolean;
   onCreate: (task: Omit<CrmTask, 'id' | 'createdAt' | 'status' | 'createdBy'>, creator: Creator) => Promise<void>;
-  onStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
+  onStatusChange: (taskId: string, status: TaskStatus, notes?: string) => Promise<void>;
   onOwnerChange: (taskId: string, ownerId: string) => Promise<void>;
 }
 
@@ -33,7 +33,7 @@ function loadStageLabels(): Partial<Record<TaskStatus, string>> {
 }
 
 export function TasksView({ tasks, customers, team, currentUser, canCreate, canAssign, onCreate, onStatusChange, onOwnerChange }: TasksViewProps) {
-  const [form, setForm] = useState({ title: '', type: 'RoqIA' as TaskType, customerName: '', ownerId: team[0]?.id ?? '', dueDate: todayAsInputValue(), notes: '' });
+  const [form, setForm] = useState({ title: '', type: 'RoqIA' as TaskType, customerName: '', ownerId: team[0]?.id ?? '', dueDate: todayAsInputValue(), description: '', notes: '' });
   const [stageLabels, setStageLabels] = useState(loadStageLabels);
   const [editingStage, setEditingStage] = useState<TaskStatus | null>(null);
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
@@ -48,7 +48,7 @@ export function TasksView({ tasks, customers, team, currentUser, canCreate, canA
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await onCreate({ ...form, customerName: form.type === 'Cliente' ? form.customerName : undefined }, currentUser);
-    setForm((current) => ({ ...current, title: '', notes: '' }));
+    setForm((current) => ({ ...current, title: '', description: '', notes: '' }));
   }
 
   function renameStage(status: TaskStatus, label: string) {
@@ -63,7 +63,10 @@ export function TasksView({ tasks, customers, team, currentUser, canCreate, canA
     setDraggedTaskId(null);
     setDragOverStage(null);
     const task = tasks.find((item) => item.id === taskId);
-    if (task && task.status !== status) await onStatusChange(task.id, status);
+    if (task && task.status !== status) {
+      const notes = window.prompt(`Observação opcional ao mover para ${stageLabels[status] ?? stages.find((stage) => stage.status === status)?.defaultLabel}:`)?.trim();
+      await onStatusChange(task.id, status, notes || undefined);
+    }
   }
 
   function getOwnerName(ownerId: string) {
@@ -85,7 +88,7 @@ export function TasksView({ tasks, customers, team, currentUser, canCreate, canA
               <label>Responsável<select required value={form.ownerId} onChange={(event) => setForm({ ...form, ownerId: event.target.value })}><option value="" disabled>Selecione um responsável</option>{team.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
               <label>Prazo<input required type="date" value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} /></label>
             </div>
-            <label>Observações<textarea value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} rows={3} /></label>
+            <label>Descrição<textarea required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} rows={3} placeholder="Descreva o que precisa ser feito" /></label>
             <button className="primary-action" type="submit"><CheckCircle2 size={18} />Criar tarefa</button>
           </form>
         </details>
@@ -114,7 +117,8 @@ export function TasksView({ tasks, customers, team, currentUser, canCreate, canA
                     <article className={`kanban-card${isLate ? ' kanban-card--late' : ''}${draggedTaskId === task.id ? ' kanban-card--dragging' : ''}`} key={task.id} draggable onDragStart={(event) => { event.dataTransfer.setData('text/task-id', task.id); event.dataTransfer.effectAllowed = 'move'; setDraggedTaskId(task.id); }} onDragEnd={() => { setDraggedTaskId(null); setDragOverStage(null); }}>
                       <div className="kanban-card__top"><span className="kanban-card__type">{task.type}</span><GripVertical size={17} aria-label="Arrastar tarefa" /></div>
                       <h4>{task.title}</h4>
-                      {task.notes && <p>{task.notes}</p>}
+                      {task.description && <p>{task.description}</p>}
+                      {task.notes && <p className="kanban-card__note"><strong>Última observação:</strong> {task.notes}</p>}
                       <div className="kanban-card__meta"><span><CalendarClock size={14} />{formatDate(task.dueDate)}</span><span className={isLate ? 'kanban-card__due--late' : ''}>{isLate ? `${Math.abs(remainingDays)}d atrasada` : `${remainingDays}d`}</span></div>
                       <div className="kanban-card__owner" title={getOwnerName(task.ownerId)}><span>{getOwnerName(task.ownerId).slice(0, 2).toUpperCase()}</span>{canAssign ? <select aria-label={`Responsável por ${task.title}`} value={task.ownerId} onPointerDown={(event) => event.stopPropagation()} onChange={(event) => void onOwnerChange(task.id, event.target.value)}>{team.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select> : <small>{getOwnerName(task.ownerId)}</small>}</div>
                     </article>
