@@ -189,7 +189,7 @@ export function App() {
             <h1>Central de atendimento e assinaturas</h1>
           </div>
           <div className="topbar__actions">
-            {(isSuperAdmin || isAdmin) && (
+            {(isSuperAdmin || isAdmin) && activeView !== 'tasks' && (
               <button className="primary-action" type="button" onClick={() => setActiveView('clientPortal')}>
                 <Plus size={18} aria-hidden="true" />
                 Abrir chamado
