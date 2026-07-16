@@ -27,6 +27,16 @@ const navigation = [
   { key: 'users', label: 'Usuarios', icon: ShieldCheck },
 ] satisfies Array<{ key: ViewKey; label: string; icon: typeof Headphones }>;
 
+const viewTitles: Record<ViewKey, string> = {
+  tickets: 'Central de chamados',
+  customers: 'Gestão de clientes e assinaturas',
+  tasks: 'Gestão de tarefas',
+  team: 'Central de responsáveis',
+  finance: 'Gestão de finanças',
+  users: 'Central de usuários',
+  clientPortal: 'Central de chamados',
+};
+
 export function App() {
   const auth = useAuth();
   const crm = useCrmData(auth.currentUser);
@@ -186,7 +196,7 @@ export function App() {
         <header className="topbar">
           <div>
             <p className="eyebrow">RoqIA CRM</p>
-            <h1>Central de atendimento e assinaturas</h1>
+            <h1>{viewTitles[activeView]}</h1>
           </div>
           <div className="topbar__actions">
             {(isSuperAdmin || isAdmin) && activeView !== 'tasks' && (

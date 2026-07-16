@@ -1,4 +1,4 @@
-import { CalendarClock, CheckCircle2, GripVertical, Pencil, X } from 'lucide-react';
+import { CalendarClock, CheckCircle2, GripVertical, Pencil, Plus, X } from 'lucide-react';
 import { DragEvent, FormEvent, useEffect, useState } from 'react';
 import { daysUntil, formatDate, todayAsInputValue } from '../../core/date';
 import type { Creator, CrmTask, Customer, TaskStatus, TaskType, TeamMember } from '../../core/types';
@@ -38,6 +38,7 @@ export function TasksView({ tasks, customers, team, currentUser, canCreate, canA
   const [editingStage, setEditingStage] = useState<TaskStatus | null>(null);
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<TaskStatus | null>(null);
+  const [showCreator, setShowCreator] = useState(false);
 
   useEffect(() => {
     if (team.length > 0 && !team.some((member) => member.id === form.ownerId)) {
@@ -49,6 +50,7 @@ export function TasksView({ tasks, customers, team, currentUser, canCreate, canA
     event.preventDefault();
     await onCreate({ ...form, customerName: form.type === 'Cliente' ? form.customerName : undefined }, currentUser);
     setForm((current) => ({ ...current, title: '', description: '', notes: '' }));
+    setShowCreator(false);
   }
 
   function renameStage(status: TaskStatus, label: string) {
@@ -75,9 +77,12 @@ export function TasksView({ tasks, customers, team, currentUser, canCreate, canA
 
   return (
     <section className="tasks-workspace">
-      {canCreate && (
-        <details className="panel task-creator">
-          <summary><span><strong>Nova tarefa</strong><small>Adicione uma demanda ao quadro</small></span><span className="task-creator__toggle">+</span></summary>
+      <div className="tasks-board-heading">
+        <SectionHeader title="Quadro de tarefas" description="Arraste os cards entre as etapas. Clique no lápis para renomear uma etapa." />
+        {canCreate && <button className="primary-action" type="button" onClick={() => setShowCreator((current) => !current)}>{showCreator ? <X size={18} /> : <Plus size={18} />}{showCreator ? 'Fechar' : 'Criar tarefa'}</button>}
+      </div>
+      {canCreate && showCreator && (
+        <div className="panel task-creator">
           <form className="form-stack task-creator__form" onSubmit={handleSubmit}>
             <label>Tarefa<input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Ex: Fazer reunião de acompanhamento" /></label>
             <div className="form-row">
@@ -91,12 +96,8 @@ export function TasksView({ tasks, customers, team, currentUser, canCreate, canA
             <label>Descrição<textarea required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} rows={3} placeholder="Descreva o que precisa ser feito" /></label>
             <button className="primary-action" type="submit"><CheckCircle2 size={18} />Criar tarefa</button>
           </form>
-        </details>
+        </div>
       )}
-
-      <div className="tasks-board-heading">
-        <SectionHeader title="Quadro de tarefas" description="Arraste os cards entre as etapas. Clique no lápis para renomear uma etapa." />
-      </div>
       <div className="kanban-board">
         {stages.map((stage) => {
           const stageTasks = tasks.filter((task) => task.status === stage.status);

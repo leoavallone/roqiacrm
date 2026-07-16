@@ -345,14 +345,10 @@
 
 .tasks-workspace { display: grid; gap: 18px; min-width: 0; }
 .task-creator { padding: 0; }
-.task-creator summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; cursor: pointer; list-style: none; }
-.task-creator summary::-webkit-details-marker { display: none; }
-.task-creator summary span:first-child { display: grid; gap: 3px; }
-.task-creator summary small { color: var(--muted); font-weight: 500; }
-.task-creator__toggle { color: var(--accent); font-size: 1.7rem; line-height: 1; transition: transform 160ms ease; }
-.task-creator[open] .task-creator__toggle { transform: rotate(45deg); }
-.task-creator__form { border-top: 1px solid var(--line); padding: 20px 22px 22px; }
+.task-creator__form { padding: 20px 22px 22px; }
+.tasks-board-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .tasks-board-heading .section-header { margin-bottom: 0; }
+.tasks-board-heading .primary-action { flex: 0 0 auto; }
 .kanban-board { display: grid; grid-template-columns: repeat(4, minmax(260px, 1fr)); gap: 14px; min-width: 0; overflow-x: auto; padding-bottom: 8px; }
 .kanban-column { --stage: var(--accent); min-height: 480px; border: 1px solid var(--line); border-top: 3px solid var(--stage); border-radius: 10px; background: color-mix(in srgb, var(--panel) 90%, transparent); box-shadow: var(--shadow); transition: border-color 150ms ease, background 150ms ease; }
 .kanban-column--pink { --stage: #ef6da8; }
@@ -995,6 +991,7 @@
 
   .topbar,
   .section-header,
+  .tasks-board-heading,
   .record-card__header {
     align-items: stretch;
     flex-direction: column;
