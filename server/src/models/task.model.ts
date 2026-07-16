@@ -7,7 +7,7 @@ const taskSchema = new Schema(
     customerId: { type: Schema.Types.ObjectId, ref: 'Customer', default: null },
     ownerId: { type: Schema.Types.ObjectId, ref: 'TeamMember', required: true },
     dueDate: { type: Date, required: true },
-    status: { type: String, enum: ['Pendente', 'Em andamento', 'Concluida'], default: 'Pendente', required: true },
+    status: { type: String, enum: ['Pendente', 'Em andamento', 'Impedimento', 'Concluida'], default: 'Pendente', required: true },
     notes: { type: String, default: '' },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },

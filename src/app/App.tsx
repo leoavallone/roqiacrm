@@ -242,8 +242,10 @@ export function App() {
             team={crm.team}
             currentUser={currentCreator}
             canCreate={isSuperAdmin || isAdmin}
+            canAssign={isSuperAdmin || isAdmin}
             onCreate={crm.addTask}
             onStatusChange={crm.updateTaskStatus}
+            onOwnerChange={crm.updateTaskOwner}
           />
         )}
         {activeView === 'team' && canSeeTeam && (

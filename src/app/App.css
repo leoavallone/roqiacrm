@@ -353,10 +353,11 @@
 .task-creator[open] .task-creator__toggle { transform: rotate(45deg); }
 .task-creator__form { border-top: 1px solid var(--line); padding: 20px 22px 22px; }
 .tasks-board-heading .section-header { margin-bottom: 0; }
-.kanban-board { display: grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 14px; min-width: 0; overflow-x: auto; padding-bottom: 8px; }
+.kanban-board { display: grid; grid-template-columns: repeat(4, minmax(260px, 1fr)); gap: 14px; min-width: 0; overflow-x: auto; padding-bottom: 8px; }
 .kanban-column { --stage: var(--accent); min-height: 480px; border: 1px solid var(--line); border-top: 3px solid var(--stage); border-radius: 10px; background: color-mix(in srgb, var(--panel) 90%, transparent); box-shadow: var(--shadow); transition: border-color 150ms ease, background 150ms ease; }
 .kanban-column--pink { --stage: #ef6da8; }
 .kanban-column--orange { --stage: #ff9a4d; }
+.kanban-column--red { --stage: #ef5350; }
 .kanban-column--green { --stage: #43d6a0; }
 .kanban-column--drag-over { border-color: var(--stage); background: color-mix(in srgb, var(--stage) 8%, var(--panel)); }
 .kanban-column__header { display: flex; align-items: center; gap: 8px; min-height: 54px; border-bottom: 1px solid var(--line); padding: 10px 12px; }
@@ -382,9 +383,10 @@
 .kanban-card__owner { gap: 7px; color: var(--muted); }
 .kanban-card__owner > span { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid var(--line); border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: .62rem; font-weight: 900; }
 .kanban-card__owner small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kanban-card__owner select { min-width: 0; height: 32px; flex: 1; padding: 0 28px 0 9px; font-size: .76rem; }
 .kanban-column__empty { display: grid; place-items: center; min-height: 88px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); padding: 14px; text-align: center; font-size: .78rem; }
 
-@media (max-width: 1050px) { .kanban-board { grid-template-columns: repeat(3, minmax(280px, 1fr)); } }
+@media (max-width: 1050px) { .kanban-board { grid-template-columns: repeat(4, minmax(280px, 1fr)); } }
 
 .tickets-workspace {
   display: grid;

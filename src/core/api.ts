@@ -207,7 +207,7 @@ export async function createTask(task: Omit<CrmTask, 'id' | 'createdAt' | 'statu
   return normalizeTask(response.task);
 }
 
-export async function updateTask(taskId: string, data: Partial<Pick<CrmTask, 'status'>>): Promise<CrmTask> {
+export async function updateTask(taskId: string, data: Partial<Pick<CrmTask, 'status' | 'ownerId'>>): Promise<CrmTask> {
   const response = await apiRequest<{ task: unknown }>(`/api/tasks/${taskId}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
