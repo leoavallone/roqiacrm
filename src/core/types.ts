@@ -48,6 +48,7 @@ export interface Ticket {
 
 export interface Customer {
   id: string;
+  photo: string;
   name: string;
   contact: string;
   email: string;

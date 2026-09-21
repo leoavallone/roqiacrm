@@ -243,6 +243,7 @@ function normalizeCustomer(value: unknown): Customer {
 
   return {
     id: getId(customer),
+    photo: String(customer.photo ?? ''),
     name: String(customer.name ?? ''),
     contact: String(customer.contact ?? ''),
     email: String(customer.email ?? ''),

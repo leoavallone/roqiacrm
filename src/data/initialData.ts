@@ -59,6 +59,7 @@ export const initialData: CrmData = {
   customers: [
     {
       id: 'customer-1',
+      photo: '',
       name: 'Alpha Contabilidade',
       contact: 'Marina Costa',
       email: 'marina@alphacont.com',
@@ -71,6 +72,7 @@ export const initialData: CrmData = {
     },
     {
       id: 'customer-2',
+      photo: '',
       name: 'Clinica Viva',
       contact: 'Rafael Lima',
       email: 'rafael@clinicaviva.com',

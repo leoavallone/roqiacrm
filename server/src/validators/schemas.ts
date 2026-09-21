@@ -23,6 +23,7 @@ export const updateUserSchema = z.object({
 });
 
 export const customerSchema = z.object({
+  photo: z.string().max(2_000_000).default(''),
   name: z.string().default(''),
   contact: z.string().default(''),
   email: z.union([z.string().email(), z.literal('')]).default(''),
