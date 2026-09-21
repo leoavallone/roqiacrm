@@ -201,6 +201,7 @@ export function App() {
         )}
         {activeView === 'finance' && canSeeFinance && (
           <FinanceView
+            customers={crm.customers}
             transactions={crm.financeTransactions}
             onCreate={crm.addFinanceTransaction}
             onDelete={crm.deleteFinanceTransaction}

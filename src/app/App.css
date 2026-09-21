@@ -795,6 +795,61 @@
   font-weight: 900;
 }
 
+.customer-card {
+  padding: 18px;
+}
+
+.customer-details {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.customer-detail {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  padding: 11px;
+}
+
+.customer-detail span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.customer-detail strong {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 0.88rem;
+}
+
+.customer-detail small {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.customer-payment-status {
+  width: fit-content;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  color: var(--success);
+  padding: 6px 9px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.customer-payment-status--late {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
+}
+
 .ticket-detail-panel {
   grid-column: auto;
 }
@@ -1008,7 +1063,7 @@
   }
 
   .navigation {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .team-box {
@@ -1024,6 +1079,10 @@
   .ticket-detail-panel {
     grid-column: span 2;
   }
+
+  .customer-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
@@ -1038,6 +1097,10 @@
   .record-card__header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .customer-details {
+    grid-template-columns: 1fr;
   }
 
   .navigation,

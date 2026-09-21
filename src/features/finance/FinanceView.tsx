@@ -2,9 +2,10 @@ import { ArrowDownCircle, ArrowUpCircle, Trash2, WalletCards } from 'lucide-reac
 import { FormEvent, useMemo, useState } from 'react';
 import { SectionHeader } from '../../components/SectionHeader';
 import { formatCurrency, formatDate, todayAsInputValue } from '../../core/date';
-import type { FinanceTransaction, FinanceTransactionType } from '../../core/types';
+import type { Customer, FinanceTransaction, FinanceTransactionType } from '../../core/types';
 
 interface FinanceViewProps {
+  customers: Customer[];
   transactions: FinanceTransaction[];
   onCreate: (transaction: Omit<FinanceTransaction, 'id'>) => Promise<void>;
   onDelete: (transactionId: string) => Promise<void>;
@@ -17,18 +18,24 @@ const emptyForm = {
   date: todayAsInputValue(),
 };
 
-export function FinanceView({ transactions, onCreate, onDelete }: FinanceViewProps) {
+export function FinanceView({ customers, transactions, onCreate, onDelete }: FinanceViewProps) {
   const [form, setForm] = useState(emptyForm);
+  const activeCustomers = useMemo(
+    () => customers.filter((customer) => customer.status === 'Ativa'),
+    [customers],
+  );
   const totals = useMemo(() => {
-    const entries = transactions
+    const customerEntries = activeCustomers.reduce((sum, customer) => sum + customer.monthlyValue, 0);
+    const manualEntries = transactions
       .filter((transaction) => transaction.type === 'Entrada')
       .reduce((sum, transaction) => sum + transaction.value, 0);
+    const entries = customerEntries + manualEntries;
     const exits = transactions
       .filter((transaction) => transaction.type === 'Saida')
       .reduce((sum, transaction) => sum + transaction.value, 0);
 
     return { entries, exits, balance: entries - exits };
-  }, [transactions]);
+  }, [activeCustomers, transactions]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -90,7 +97,7 @@ export function FinanceView({ transactions, onCreate, onDelete }: FinanceViewPro
       </div>
 
       <div className="panel">
-        <SectionHeader title="Financeiro" description="Acompanhe entradas, saídas e saldo dos lançamentos." />
+        <SectionHeader title="Financeiro" description="Clientes ativos entram automaticamente na receita mensal." />
         <div className="metrics metrics--inside finance-metrics">
           <article className="metric metric--entry">
             <span>Entradas</span>
@@ -107,7 +114,32 @@ export function FinanceView({ transactions, onCreate, onDelete }: FinanceViewPro
         </div>
 
         <div className="record-list finance-list">
-          {transactions.length === 0 && <p className="empty-state">Nenhum lançamento cadastrado.</p>}
+          {activeCustomers.length === 0 && transactions.length === 0 && (
+            <p className="empty-state">Nenhuma entrada ou saída cadastrada.</p>
+          )}
+          {activeCustomers.map((customer) => (
+            <article className="record-card" key={`customer-${customer.id}`}>
+              <div className="record-card__icon finance-icon finance-icon--entry">
+                <ArrowUpCircle size={20} aria-hidden="true" />
+              </div>
+              <div className="record-card__content">
+                <div className="record-card__header">
+                  <div>
+                    <h3>{customer.name || 'Cliente sem nome'}</h3>
+                    <p>
+                      {customer.nextDueDate
+                        ? `Próximo vencimento: ${formatDate(customer.nextDueDate)}`
+                        : 'Vencimento não informado'}
+                    </p>
+                  </div>
+                  <strong className="finance-value--entry">+ {formatCurrency(customer.monthlyValue)}</strong>
+                </div>
+                <div className="record-actions record-actions--compact">
+                  <span className="status-badge status-badge--success">Entrada recorrente · Cliente ativo</span>
+                </div>
+              </div>
+            </article>
+          ))}
           {transactions.map((transaction) => {
             const isEntry = transaction.type === 'Entrada';
             const Icon = isEntry ? ArrowUpCircle : ArrowDownCircle;

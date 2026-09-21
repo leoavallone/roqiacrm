@@ -1,4 +1,4 @@
-import { CheckCircle2, CreditCard, Edit3, Save, Trash2, UserPlus } from 'lucide-react';
+import { Building2, CheckCircle2, Edit3, Save, Trash2, UserPlus } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { daysUntil, formatCurrency, formatDate, getNextMonthlyDueDate } from '../../core/date';
 import type { Customer, CustomerServiceMode, SubscriptionStatus } from '../../core/types';
@@ -31,6 +31,11 @@ const emptyEditForm = {
   status: 'Ativa' as SubscriptionStatus,
   serviceMode: 'solo' as CustomerServiceMode,
 };
+
+const contractDurationOptions = Array.from({ length: 60 }, (_, index) => {
+  const months = index + 1;
+  return `${months} ${months === 1 ? 'mês' : 'meses'}`;
+});
 
 export function CustomersView({ customers, readOnly = false, onCreate, onUpdate, onDelete }: CustomersViewProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -118,11 +123,14 @@ export function CustomersView({ customers, readOnly = false, onCreate, onUpdate,
           <div className="form-row">
             <label>
               Tempo de contrato
-              <input
-                placeholder="Ex.: 12 meses ou Indeterminado"
+              <select
                 value={form.contractDuration}
                 onChange={(event) => setForm({ ...form, contractDuration: event.target.value })}
-              />
+              >
+                <option value="">Não informado</option>
+                <option value="Indeterminado">Indeterminado</option>
+                {contractDurationOptions.map((duration) => <option key={duration}>{duration}</option>)}
+              </select>
             </label>
             <label>
               Valor mensal
@@ -193,9 +201,9 @@ export function CustomersView({ customers, readOnly = false, onCreate, onUpdate,
           {customers.map((customer) => {
             const remainingDays = customer.nextDueDate ? daysUntil(customer.nextDueDate) : null;
             return (
-              <article className="record-card" key={customer.id}>
+              <article className="record-card customer-card" key={customer.id}>
                 <div className="record-card__icon">
-                  <CreditCard size={20} aria-hidden="true" />
+                  <Building2 size={20} aria-hidden="true" />
                 </div>
                 <div className="record-card__content">
                   {editingId === customer.id ? (
@@ -227,11 +235,14 @@ export function CustomersView({ customers, readOnly = false, onCreate, onUpdate,
                       <div className="form-row">
                         <label>
                           Tempo de contrato
-                          <input
-                            placeholder="Ex.: 12 meses ou Indeterminado"
+                          <select
                             value={editForm.contractDuration}
                             onChange={(event) => setEditForm({ ...editForm, contractDuration: event.target.value })}
-                          />
+                          >
+                            <option value="">Não informado</option>
+                            <option value="Indeterminado">Indeterminado</option>
+                            {contractDurationOptions.map((duration) => <option key={duration}>{duration}</option>)}
+                          </select>
                         </label>
                         <label>
                           Valor mensal
@@ -307,18 +318,34 @@ export function CustomersView({ customers, readOnly = false, onCreate, onUpdate,
                         </div>
                         <StatusBadge label={customer.status} tone={statusTone[customer.status]} />
                       </div>
-                      <div className="customer-plan">
-                        <strong>{customer.contractDuration || 'Contrato não informado'}</strong>
-                        <span>{formatCurrency(customer.monthlyValue)}</span>
+                      <div className="customer-details">
+                        <div className="customer-detail">
+                          <span>Contrato</span>
+                          <strong>{customer.contractDuration || 'Não informado'}</strong>
+                        </div>
+                        <div className="customer-detail">
+                          <span>Mensalidade</span>
+                          <strong>{formatCurrency(customer.monthlyValue)}</strong>
+                        </div>
+                        <div className="customer-detail">
+                          <span>Vencimento</span>
+                          <strong>{customer.dueDay ? `Dia ${customer.dueDay}` : 'Não informado'}</strong>
+                          <small>{customer.nextDueDate ? formatDate(customer.nextDueDate) : 'Sem próxima data'}</small>
+                        </div>
+                        <div className="customer-detail">
+                          <span>Atendimento</span>
+                          <strong>{customer.serviceMode === 'partnership' ? 'Parceria' : 'Solo'}</strong>
+                        </div>
                       </div>
-                      <div className="record-meta">
-                        <span>{customer.dueDay ? `Dia ${customer.dueDay}` : 'Dia não informado'}</span>
-                        <span>{customer.serviceMode === 'partnership' ? 'Parceria' : 'Solo'}</span>
-                        <span>{customer.nextDueDate ? formatDate(customer.nextDueDate) : 'Sem próximo vencimento'}</span>
-                        {remainingDays !== null && (
-                          <span>{remainingDays < 0 ? `${Math.abs(remainingDays)} dias atrasado` : `${remainingDays} dias`}</span>
-                        )}
-                      </div>
+                      {remainingDays !== null && (
+                        <div className={remainingDays < 0 ? 'customer-payment-status customer-payment-status--late' : 'customer-payment-status'}>
+                          {remainingDays < 0
+                            ? `${Math.abs(remainingDays)} dias em atraso`
+                            : remainingDays === 0
+                              ? 'Vence hoje'
+                              : `Vence em ${remainingDays} dias`}
+                        </div>
+                      )}
                       {!readOnly && (
                         <div className="record-actions record-actions--compact">
                           <button
