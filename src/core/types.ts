@@ -2,9 +2,10 @@ export type TicketStatus = 'Aberto' | 'Em andamento' | 'Resolvido';
 export type TicketPriority = 'Baixa' | 'Media' | 'Alta' | 'Urgente';
 export type TaskStatus = 'Pendente' | 'Em andamento' | 'Impedimento' | 'Concluida';
 export type TaskType = 'Cliente' | 'RoqIA' | 'Prototipo' | 'Melhoria';
-export type SubscriptionStatus = 'Ativa' | 'Pendente' | 'Vencida';
+export type SubscriptionStatus = 'Ativa' | 'Inativo' | 'Pendente' | 'Vencida';
 export type UserRole = 'superAdmin' | 'admin' | 'collaborator' | 'client';
 export type CustomerServiceMode = 'solo' | 'partnership';
+export type FinanceTransactionType = 'Entrada' | 'Saida';
 
 export interface UserAccount {
   id: string;
@@ -50,12 +51,20 @@ export interface Customer {
   name: string;
   contact: string;
   email: string;
-  plan: string;
+  contractDuration: string;
   monthlyValue: number;
   dueDay: number;
   nextDueDate: string;
   status: SubscriptionStatus;
   serviceMode: CustomerServiceMode;
+}
+
+export interface FinanceTransaction {
+  id: string;
+  type: FinanceTransactionType;
+  description: string;
+  value: number;
+  date: string;
 }
 
 export interface TeamMember {
@@ -83,4 +92,5 @@ export interface CrmData {
   customers: Customer[];
   tasks: CrmTask[];
   team: TeamMember[];
+  financeTransactions: FinanceTransaction[];
 }

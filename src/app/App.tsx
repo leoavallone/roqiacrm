@@ -266,7 +266,13 @@ export function App() {
             onDelete={crm.deleteTeamMember}
           />
         )}
-        {activeView === 'finance' && canSeeFinance && <FinanceView customers={crm.customers} />}
+        {activeView === 'finance' && canSeeFinance && (
+          <FinanceView
+            transactions={crm.financeTransactions}
+            onCreate={crm.addFinanceTransaction}
+            onDelete={crm.deleteFinanceTransaction}
+          />
+        )}
         {activeView === 'users' && canSeeUsers && (
           <UsersView
             accounts={auth.accounts}

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   createCustomer as createCustomerRequest,
+  createFinanceTransaction as createFinanceTransactionRequest,
   createTask as createTaskRequest,
   createTeamMember as createTeamMemberRequest,
   createTicket as createTicketRequest,
   deleteCustomer as deleteCustomerRequest,
+  deleteFinanceTransaction as deleteFinanceTransactionRequest,
   deleteTeamMember as deleteTeamMemberRequest,
   fetchCrmData,
   fetchPortalData,
@@ -13,13 +15,15 @@ import {
   updateTeamMember as updateTeamMemberRequest,
   updateTicket as updateTicketRequest,
 } from '../core/api';
-import type { Creator, CrmData, CrmTask, Customer, TeamMember, Ticket, UserAccount } from '../core/types';
+import type { Creator, CrmData, CrmTask, Customer, FinanceTransaction, TeamMember, Ticket, UserAccount } from '../core/types';
 
 type CrmAction = {
   addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'status' | 'number' | 'history' | 'createdBy'>, creator: Creator) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id'>) => Promise<void>;
   updateCustomer: (customerId: string, customer: Omit<Customer, 'id'>) => Promise<void>;
   deleteCustomer: (customerId: string) => Promise<void>;
+  addFinanceTransaction: (transaction: Omit<FinanceTransaction, 'id'>) => Promise<void>;
+  deleteFinanceTransaction: (transactionId: string) => Promise<void>;
   addTask: (task: Omit<CrmTask, 'id' | 'createdAt' | 'status' | 'createdBy'>, creator: Creator) => Promise<void>;
   addTeamMember: (member: Omit<TeamMember, 'id'>) => Promise<void>;
   updateTeamMember: (memberId: string, member: Omit<TeamMember, 'id'>) => Promise<void>;
@@ -35,6 +39,7 @@ const emptyData: CrmData = {
   customers: [],
   tasks: [],
   team: [],
+  financeTransactions: [],
 };
 
 export function useCrmData(currentUser: UserAccount | null): CrmData & CrmAction {
@@ -50,7 +55,9 @@ export function useCrmData(currentUser: UserAccount | null): CrmData & CrmAction
     const activeUser = currentUser;
 
     async function loadData() {
-      const nextData = activeUser.role === 'client' ? await fetchPortalData() : await fetchCrmData();
+      const nextData = activeUser.role === 'client'
+        ? await fetchPortalData()
+        : await fetchCrmData(activeUser.role === 'superAdmin' || activeUser.role === 'admin');
 
       if (isMounted) {
         setData(nextData);
@@ -96,6 +103,20 @@ export function useCrmData(currentUser: UserAccount | null): CrmData & CrmAction
         setData((current) => ({
           ...current,
           customers: current.customers.filter((customer) => customer.id !== customerId),
+        }));
+      },
+      async addFinanceTransaction(transaction) {
+        const createdTransaction = await createFinanceTransactionRequest(transaction);
+        setData((current) => ({
+          ...current,
+          financeTransactions: [createdTransaction, ...current.financeTransactions],
+        }));
+      },
+      async deleteFinanceTransaction(transactionId) {
+        await deleteFinanceTransactionRequest(transactionId);
+        setData((current) => ({
+          ...current,
+          financeTransactions: current.financeTransactions.filter((transaction) => transaction.id !== transactionId),
         }));
       },
       async addTask(task) {

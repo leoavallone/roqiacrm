@@ -62,7 +62,7 @@ export const initialData: CrmData = {
       name: 'Alpha Contabilidade',
       contact: 'Marina Costa',
       email: 'marina@alphacont.com',
-      plan: 'Profissional',
+      contractDuration: '12 meses',
       monthlyValue: 490,
       dueDay: 10,
       nextDueDate: '2026-06-10',
@@ -74,7 +74,7 @@ export const initialData: CrmData = {
       name: 'Clinica Viva',
       contact: 'Rafael Lima',
       email: 'rafael@clinicaviva.com',
-      plan: 'Essencial',
+      contractDuration: 'Indeterminado',
       monthlyValue: 290,
       dueDay: 5,
       nextDueDate: '2026-06-05',
@@ -114,4 +114,5 @@ export const initialData: CrmData = {
     { id: 'member-2', name: 'Bruno Alves', role: 'Suporte' },
     { id: 'member-3', name: 'Carla Mendes', role: 'Financeiro' },
   ],
+  financeTransactions: [],
 };

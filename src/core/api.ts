@@ -1,4 +1,4 @@
-import type { Creator, CrmData, CrmTask, Customer, TeamMember, Ticket, UserAccount } from './types';
+import type { Creator, CrmData, CrmTask, Customer, FinanceTransaction, TeamMember, Ticket, UserAccount } from './types';
 
 const TOKEN_KEY = 'roqiacrm:auth-token:v1';
 const API_BASE_URL =
@@ -98,16 +98,39 @@ export async function updateUser(accountId: string, account: Partial<UserAccount
   return response.user;
 }
 
-export async function fetchCrmData(): Promise<CrmData> {
-  const [customers, team, tickets, tasks] = await Promise.all([fetchCustomers(), fetchTeamMembers(), fetchTickets(), fetchTasks()]);
+export async function fetchCrmData(includeFinance = false): Promise<CrmData> {
+  const [customers, team, tickets, tasks, financeTransactions] = await Promise.all([
+    fetchCustomers(),
+    fetchTeamMembers(),
+    fetchTickets(),
+    fetchTasks(),
+    includeFinance ? fetchFinanceTransactions() : Promise.resolve([]),
+  ]);
 
-  return { customers, team, tickets, tasks };
+  return { customers, team, tickets, tasks, financeTransactions };
 }
 
 export async function fetchPortalData(): Promise<CrmData> {
   const [customers, tickets] = await Promise.all([fetchCustomers(), fetchTickets()]);
 
-  return { customers, tickets, tasks: [], team: [] };
+  return { customers, tickets, tasks: [], team: [], financeTransactions: [] };
+}
+
+export async function fetchFinanceTransactions(): Promise<FinanceTransaction[]> {
+  const response = await apiRequest<{ transactions: unknown[] }>('/api/finance/transactions');
+  return response.transactions.map(normalizeFinanceTransaction);
+}
+
+export async function createFinanceTransaction(transaction: Omit<FinanceTransaction, 'id'>): Promise<FinanceTransaction> {
+  const response = await apiRequest<{ transaction: unknown }>('/api/finance/transactions', {
+    method: 'POST',
+    body: JSON.stringify(transaction),
+  });
+  return normalizeFinanceTransaction(response.transaction);
+}
+
+export async function deleteFinanceTransaction(transactionId: string): Promise<void> {
+  await apiRequest<void>(`/api/finance/transactions/${transactionId}`, { method: 'DELETE' });
 }
 
 export async function fetchCustomers(): Promise<Customer[]> {
@@ -223,12 +246,24 @@ function normalizeCustomer(value: unknown): Customer {
     name: String(customer.name ?? ''),
     contact: String(customer.contact ?? ''),
     email: String(customer.email ?? ''),
-    plan: String(customer.plan ?? ''),
+    contractDuration: String(customer.contractDuration ?? ''),
     monthlyValue: Number(customer.monthlyValue ?? 0),
-    dueDay: Number(customer.dueDay ?? 1),
+    dueDay: Number(customer.dueDay ?? 0),
     nextDueDate: toDateInputValue(customer.nextDueDate),
     status: customer.status as Customer['status'],
     serviceMode: (customer.serviceMode ?? 'solo') as Customer['serviceMode'],
+  };
+}
+
+function normalizeFinanceTransaction(value: unknown): FinanceTransaction {
+  const transaction = value as Record<string, unknown>;
+
+  return {
+    id: getId(transaction),
+    type: transaction.type as FinanceTransaction['type'],
+    description: String(transaction.description ?? ''),
+    value: Number(transaction.value ?? 0),
+    date: toDateInputValue(transaction.date),
   };
 }
 
@@ -350,7 +385,7 @@ function getRefName(value: MongoRef): string {
 
 function toDateInputValue(value: unknown): string {
   if (!value) {
-    return new Date().toISOString().slice(0, 10);
+    return '';
   }
 
   return String(value).slice(0, 10);

@@ -19,3 +19,21 @@ export function daysUntil(date: string): number {
   const diff = target.getTime() - today.getTime();
   return Math.ceil(diff / 86_400_000);
 }
+
+export function getNextMonthlyDueDate(dueDay: number, currentDueDate?: string): string {
+  const today = todayAsInputValue();
+  const baseDate = currentDueDate && currentDueDate > today ? currentDueDate : today;
+  const [baseYear, baseMonth, baseDay] = baseDate.split('-').map(Number);
+  const targetMonthStart = new Date(Date.UTC(baseYear, baseMonth, 1));
+  const targetYear = targetMonthStart.getUTCFullYear();
+  const targetMonth = targetMonthStart.getUTCMonth();
+  const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  const preferredDay = dueDay >= 1 && dueDay <= 31 ? dueDay : baseDay;
+  const targetDay = Math.min(preferredDay, lastDayOfTargetMonth);
+
+  return [
+    targetYear,
+    String(targetMonth + 1).padStart(2, '0'),
+    String(targetDay).padStart(2, '0'),
+  ].join('-');
+}

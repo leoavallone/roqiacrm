@@ -23,15 +23,22 @@ export const updateUserSchema = z.object({
 });
 
 export const customerSchema = z.object({
-  name: z.string().min(2),
-  contact: z.string().min(2),
-  email: z.string().email(),
-  plan: z.string().min(2),
-  monthlyValue: z.coerce.number().min(0),
-  dueDay: z.coerce.number().min(1).max(31),
-  nextDueDate: z.coerce.date(),
-  status: z.enum(['Ativa', 'Pendente', 'Vencida']).default('Ativa'),
+  name: z.string().default(''),
+  contact: z.string().default(''),
+  email: z.union([z.string().email(), z.literal('')]).default(''),
+  contractDuration: z.string().default(''),
+  monthlyValue: z.coerce.number().min(0).default(0),
+  dueDay: z.coerce.number().min(0).max(31).default(0),
+  nextDueDate: z.preprocess((value) => value === '' ? null : value, z.coerce.date().nullable()).default(null),
+  status: z.enum(['Ativa', 'Inativo', 'Pendente', 'Vencida']).default('Ativa'),
   serviceMode: z.enum(['solo', 'partnership']).default('solo'),
+});
+
+export const financeTransactionSchema = z.object({
+  type: z.enum(['Entrada', 'Saida']),
+  description: z.string().min(1),
+  value: z.coerce.number().positive(),
+  date: z.coerce.date(),
 });
 
 export const teamMemberSchema = z.object({
