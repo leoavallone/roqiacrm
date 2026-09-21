@@ -1,13 +1,9 @@
-import { Building2, CheckSquare, DollarSign, Headphones, LogOut, Moon, Plus, ShieldCheck, Sun, UsersRound, UserRound } from 'lucide-react';
+import { Building2, CheckSquare, DollarSign, LogOut, Moon, Sun, UserRound } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { LoginView } from '../features/auth/LoginView';
 import { CustomersView } from '../features/customers/CustomersView';
 import { FinanceView } from '../features/finance/FinanceView';
-import { TeamView } from '../features/team/TeamView';
 import { TasksView } from '../features/tasks/TasksView';
-import { TicketPortalView } from '../features/tickets/TicketPortalView';
-import { TicketsView } from '../features/tickets/TicketsView';
-import { UsersView } from '../features/users/UsersView';
 import { daysUntil } from '../core/date';
 import type { Creator } from '../core/types';
 import { useAuth } from '../hooks/useAuth';
@@ -15,45 +11,38 @@ import { useCrmData } from '../hooks/useCrmData';
 import roqiaSymbol from '../../favicon.png';
 import './App.css';
 
-type ViewKey = 'tickets' | 'customers' | 'tasks' | 'team' | 'finance' | 'users' | 'clientPortal';
+type ViewKey = 'tasks' | 'customers' | 'finance';
 type Theme = 'dark' | 'light';
 
 const navigation = [
-  { key: 'tickets', label: 'Chamados', icon: Headphones },
-  { key: 'customers', label: 'Clientes', icon: Building2 },
   { key: 'tasks', label: 'Tarefas', icon: CheckSquare },
-  { key: 'team', label: 'Responsaveis', icon: UsersRound },
+  { key: 'customers', label: 'Clientes', icon: Building2 },
   { key: 'finance', label: 'Financeiro', icon: DollarSign },
-  { key: 'users', label: 'Usuarios', icon: ShieldCheck },
-] satisfies Array<{ key: ViewKey; label: string; icon: typeof Headphones }>;
+] satisfies Array<{ key: ViewKey; label: string; icon: typeof CheckSquare }>;
 
 const viewTitles: Record<ViewKey, string> = {
-  tickets: 'Central de chamados',
-  customers: 'Gestão de clientes e assinaturas',
   tasks: 'Gestão de tarefas',
-  team: 'Central de responsáveis',
+  customers: 'Gestão de clientes e contratos',
   finance: 'Gestão de finanças',
-  users: 'Central de usuários',
-  clientPortal: 'Central de chamados',
 };
 
 export function App() {
   const auth = useAuth();
   const crm = useCrmData(auth.currentUser);
-  const [activeView, setActiveView] = useState<ViewKey>('tickets');
+  const [activeView, setActiveView] = useState<ViewKey>('tasks');
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = window.localStorage.getItem('roqiacrm:theme');
     return savedTheme === 'light' ? 'light' : 'dark';
   });
 
   const metrics = useMemo(() => {
-    const openTickets = crm.tickets.filter((ticket) => ticket.status !== 'Resolvido').length;
     const activeCustomers = crm.customers.filter((customer) => customer.status === 'Ativa').length;
+    const inactiveCustomers = crm.customers.filter((customer) => customer.status === 'Inativo').length;
+    const pendingTasks = crm.tasks.filter((task) => task.status !== 'Concluida').length;
     const overdueTasks = crm.tasks.filter((task) => task.status !== 'Concluida' && daysUntil(task.dueDate) < 0).length;
-    const unassignedTickets = crm.tickets.filter((ticket) => ticket.status !== 'Resolvido' && !ticket.assignedToId).length;
 
-    return { openTickets, activeCustomers, overdueTasks, unassignedTickets };
-  }, [crm.tickets, crm.customers, crm.tasks]);
+    return { activeCustomers, inactiveCustomers, pendingTasks, overdueTasks };
+  }, [crm.customers, crm.tasks]);
 
   function changeTheme(nextTheme: Theme) {
     setTheme(nextTheme);
@@ -74,18 +63,13 @@ export function App() {
     return <LoginView onLogin={auth.login} />;
   }
 
-  const isClient = auth.currentUser.role === 'client';
   const isSuperAdmin = auth.currentUser.role === 'superAdmin';
   const isAdmin = auth.currentUser.role === 'admin';
   const canSeeCustomers = isSuperAdmin || isAdmin;
   const canSeeFinance = isSuperAdmin || isAdmin;
-  const canSeeUsers = isSuperAdmin;
-  const canSeeTeam = isSuperAdmin;
   const availableNavigation = navigation.filter((item) => {
     if (item.key === 'customers') return canSeeCustomers;
     if (item.key === 'finance') return canSeeFinance;
-    if (item.key === 'users') return canSeeUsers;
-    if (item.key === 'team') return canSeeTeam;
     return true;
   });
 
@@ -96,32 +80,6 @@ export function App() {
     role: auth.currentUser.role,
     customerId: auth.currentUser.customerId,
   };
-
-  if (isClient) {
-    return (
-      <main className="app-shell app-shell--portal" data-theme={theme}>
-        <TicketPortalView
-          customers={crm.customers}
-          currentUser={currentCreator}
-          onBack={auth.logout}
-          onCreate={crm.addTicket}
-        />
-      </main>
-    );
-  }
-
-  if (activeView === 'clientPortal') {
-    return (
-      <main className="app-shell app-shell--portal" data-theme={theme}>
-        <TicketPortalView
-          customers={crm.customers}
-          currentUser={currentCreator}
-          onBack={() => setActiveView('tickets')}
-          onCreate={crm.addTicket}
-        />
-      </main>
-    );
-  }
 
   return (
     <main className="app-shell" data-theme={theme}>
@@ -198,28 +156,20 @@ export function App() {
             <p className="eyebrow">RoqIA CRM</p>
             <h1>{viewTitles[activeView]}</h1>
           </div>
-          <div className="topbar__actions">
-            {(isSuperAdmin || isAdmin) && activeView !== 'tasks' && (
-              <button className="primary-action" type="button" onClick={() => setActiveView('clientPortal')}>
-                <Plus size={18} aria-hidden="true" />
-                Abrir chamado
-              </button>
-            )}
-          </div>
         </header>
 
         <section className="metrics" aria-label="Indicadores">
           <article className="metric">
-            <span>Chamados ativos</span>
-            <strong>{metrics.openTickets}</strong>
+            <span>Tarefas pendentes</span>
+            <strong>{metrics.pendingTasks}</strong>
           </article>
           <article className="metric">
             <span>Clientes ativos</span>
             <strong>{metrics.activeCustomers}</strong>
           </article>
           <article className="metric">
-            <span>Sem responsavel</span>
-            <strong>{metrics.unassignedTickets}</strong>
+            <span>Clientes inativos</span>
+            <strong>{metrics.inactiveCustomers}</strong>
           </article>
           <article className="metric metric--attention">
             <span>Tarefas atrasadas</span>
@@ -227,15 +177,6 @@ export function App() {
           </article>
         </section>
 
-        {activeView === 'tickets' && (
-          <TicketsView
-            customers={crm.customers}
-            team={crm.team}
-            tickets={crm.tickets}
-            onAssigneeChange={crm.updateTicketAssignee}
-            onStatusChange={crm.updateTicketStatus}
-          />
-        )}
         {activeView === 'customers' && canSeeCustomers && (
           <CustomersView
             customers={crm.customers}
@@ -258,29 +199,11 @@ export function App() {
             onOwnerChange={crm.updateTaskOwner}
           />
         )}
-        {activeView === 'team' && canSeeTeam && (
-          <TeamView
-            team={crm.team}
-            onCreate={crm.addTeamMember}
-            onUpdate={crm.updateTeamMember}
-            onDelete={crm.deleteTeamMember}
-          />
-        )}
         {activeView === 'finance' && canSeeFinance && (
           <FinanceView
             transactions={crm.financeTransactions}
             onCreate={crm.addFinanceTransaction}
             onDelete={crm.deleteFinanceTransaction}
-          />
-        )}
-        {activeView === 'users' && canSeeUsers && (
-          <UsersView
-            accounts={auth.accounts}
-            customers={crm.customers}
-            currentUserId={auth.currentUser.id}
-            onCreate={auth.createAccount}
-            onRoleChange={auth.updateAccountRole}
-            onCustomerChange={auth.updateAccountCustomer}
           />
         )}
       </section>
