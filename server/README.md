@@ -42,6 +42,7 @@ npm run server:reset-users
 - `GET /api/auth/me`: retorna usuario logado.
 - `GET|POST|PATCH|DELETE /api/users`: gestao de usuarios, apenas admin.
 - `GET|POST|PATCH|DELETE /api/customers`: gestao de clientes, apenas admin.
+- `POST /api/customers/:id/mark-paid`: registra o pagamento no CRM e atualiza o proximo vencimento no OneApp, apenas super admin.
 - `GET|POST|PATCH|DELETE /api/team`: gestao de responsaveis, apenas admin.
 - `GET|POST|PATCH|DELETE /api/tickets`: chamados. Clientes criam chamados vinculados ao proprio cliente; admin gerencia fila, responsavel e status.
 - `GET|POST|PATCH|DELETE /api/tasks`: tarefas internas, apenas admin.

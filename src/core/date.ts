@@ -22,7 +22,7 @@ export function daysUntil(date: string): number {
 
 export function getNextMonthlyDueDate(dueDay: number, currentDueDate?: string): string {
   const today = todayAsInputValue();
-  const baseDate = currentDueDate && currentDueDate > today ? currentDueDate : today;
+  const baseDate = currentDueDate || today;
   const [baseYear, baseMonth, baseDay] = baseDate.split('-').map(Number);
   const targetMonthStart = new Date(Date.UTC(baseYear, baseMonth, 1));
   const targetYear = targetMonthStart.getUTCFullYear();

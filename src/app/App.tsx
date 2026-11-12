@@ -183,6 +183,7 @@ export function App() {
             readOnly={!isSuperAdmin}
             onCreate={crm.addCustomer}
             onUpdate={crm.updateCustomer}
+            onMarkPaid={crm.markCustomerAsPaid}
             onDelete={crm.deleteCustomer}
           />
         )}

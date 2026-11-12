@@ -169,6 +169,13 @@ export async function updateCustomer(customerId: string, customer: Omit<Customer
   return normalizeCustomer(response.customer);
 }
 
+export async function markCustomerAsPaid(customerId: string): Promise<Customer> {
+  const response = await apiRequest<{ customer: unknown }>(`/api/customers/${customerId}/mark-paid`, {
+    method: 'POST',
+  });
+  return normalizeCustomer(response.customer);
+}
+
 export async function deleteCustomer(customerId: string): Promise<void> {
   await apiRequest<void>(`/api/customers/${customerId}`, { method: 'DELETE' });
 }
@@ -253,6 +260,7 @@ function normalizeCustomer(value: unknown): Customer {
     nextDueDate: toDateInputValue(customer.nextDueDate),
     status: customer.status as Customer['status'],
     serviceMode: (customer.serviceMode ?? 'solo') as Customer['serviceMode'],
+    oneAppOrganizationId: String(customer.oneAppOrganizationId ?? ''),
   };
 }
 

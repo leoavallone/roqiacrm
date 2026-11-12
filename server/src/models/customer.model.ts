@@ -12,6 +12,7 @@ const customerSchema = new Schema(
     nextDueDate: { type: Date, default: null },
     status: { type: String, enum: ['Ativa', 'Inativo', 'Pendente', 'Vencida'], default: 'Ativa' },
     serviceMode: { type: String, enum: ['solo', 'partnership'], default: 'solo' },
+    oneAppOrganizationId: { type: String, default: '', trim: true },
   },
   { timestamps: true },
 );

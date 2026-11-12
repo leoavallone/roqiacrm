@@ -30,6 +30,7 @@ function normalizeCrmData(data: CrmData, initialData: CrmData): CrmData {
     customers: data.customers.map((customer) => ({
       ...customer,
       serviceMode: customer.serviceMode ?? 'solo',
+      oneAppOrganizationId: customer.oneAppOrganizationId ?? '',
     })),
     tickets: data.tickets.map((ticket, index) => ({
       ...ticket,

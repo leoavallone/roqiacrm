@@ -10,6 +10,7 @@ import {
   deleteTeamMember as deleteTeamMemberRequest,
   fetchCrmData,
   fetchPortalData,
+  markCustomerAsPaid as markCustomerAsPaidRequest,
   updateCustomer as updateCustomerRequest,
   updateTask as updateTaskRequest,
   updateTeamMember as updateTeamMemberRequest,
@@ -21,6 +22,7 @@ type CrmAction = {
   addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'status' | 'number' | 'history' | 'createdBy'>, creator: Creator) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id'>) => Promise<void>;
   updateCustomer: (customerId: string, customer: Omit<Customer, 'id'>) => Promise<void>;
+  markCustomerAsPaid: (customerId: string) => Promise<void>;
   deleteCustomer: (customerId: string) => Promise<void>;
   addFinanceTransaction: (transaction: Omit<FinanceTransaction, 'id'>) => Promise<void>;
   deleteFinanceTransaction: (transactionId: string) => Promise<void>;
@@ -95,6 +97,15 @@ export function useCrmData(currentUser: UserAccount | null): CrmData & CrmAction
           ...current,
           customers: current.customers.map((currentCustomer) =>
             currentCustomer.id === customerId ? updatedCustomer : currentCustomer,
+          ),
+        }));
+      },
+      async markCustomerAsPaid(customerId) {
+        const updatedCustomer = await markCustomerAsPaidRequest(customerId);
+        setData((current) => ({
+          ...current,
+          customers: current.customers.map((customer) =>
+            customer.id === customerId ? updatedCustomer : customer,
           ),
         }));
       },

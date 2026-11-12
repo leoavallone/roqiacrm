@@ -33,6 +33,7 @@ export const customerSchema = z.object({
   nextDueDate: z.preprocess((value) => value === '' ? null : value, z.coerce.date().nullable()).default(null),
   status: z.enum(['Ativa', 'Inativo', 'Pendente', 'Vencida']).default('Ativa'),
   serviceMode: z.enum(['solo', 'partnership']).default('solo'),
+  oneAppOrganizationId: z.union([objectIdSchema, z.literal('')]).default(''),
 });
 
 export const financeTransactionSchema = z.object({

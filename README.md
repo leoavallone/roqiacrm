@@ -28,7 +28,11 @@ CORS_ORIGIN=https://crm.roqia.com.br
 SEED_ADMIN_NAME=Super Admin RoqIA
 SEED_ADMIN_EMAIL=roqiaaccelerate@gmail.com
 SEED_ADMIN_PASSWORD=troque-essa-senha
+ONEAPP_API_URL=https://oneflow.roqia.com.br
+ONEAPP_ADMIN_API_KEY=a_mesma_ADMIN_API_KEY_configurada_no_OneApp
 ```
+
+`ONEAPP_ADMIN_API_KEY` fica somente no backend do CRM. Ela permite que o botao **Marcar como pago** atualize o vencimento e libere o estabelecimento no OneApp sem usar o console do EasyPanel.
 
 Depois do deploy, o dominio deve apontar para esse app Node. Valide:
 

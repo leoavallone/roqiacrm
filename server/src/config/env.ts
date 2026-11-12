@@ -12,6 +12,8 @@ const envSchema = z.object({
   SEED_ADMIN_NAME: z.string().default('Super Admin RoqIA'),
   SEED_ADMIN_EMAIL: z.string().email().default('roqiaaccelerate@gmail.com'),
   SEED_ADMIN_PASSWORD: z.string().min(6).default('Avallone2511!'),
+  ONEAPP_API_URL: z.string().url().default('https://oneflow.roqia.com.br'),
+  ONEAPP_ADMIN_API_KEY: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

@@ -69,6 +69,7 @@ export const initialData: CrmData = {
       nextDueDate: '2026-06-10',
       status: 'Ativa',
       serviceMode: 'partnership',
+      oneAppOrganizationId: '',
     },
     {
       id: 'customer-2',
@@ -82,6 +83,7 @@ export const initialData: CrmData = {
       nextDueDate: '2026-06-05',
       status: 'Pendente',
       serviceMode: 'solo',
+      oneAppOrganizationId: '',
     },
   ],
   tasks: [

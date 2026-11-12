@@ -10,6 +10,7 @@ interface CustomersViewProps {
   readOnly?: boolean;
   onCreate: (customer: Omit<Customer, 'id'>) => Promise<void>;
   onUpdate: (customerId: string, customer: Omit<Customer, 'id'>) => Promise<void>;
+  onMarkPaid: (customerId: string) => Promise<void>;
   onDelete: (customerId: string) => Promise<void>;
 }
 
@@ -38,6 +39,7 @@ const emptyCustomerForm: CustomerFormData = {
   nextDueDate: '',
   status: 'Ativa',
   serviceMode: 'solo',
+  oneAppOrganizationId: '',
 };
 
 const contractDurationOptions = Array.from({ length: 60 }, (_, index) => {
@@ -45,7 +47,7 @@ const contractDurationOptions = Array.from({ length: 60 }, (_, index) => {
   return `${months} ${months === 1 ? 'mês' : 'meses'}`;
 });
 
-export function CustomersView({ customers, readOnly = false, onCreate, onUpdate, onDelete }: CustomersViewProps) {
+export function CustomersView({ customers, readOnly = false, onCreate, onUpdate, onMarkPaid, onDelete }: CustomersViewProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
@@ -72,14 +74,23 @@ export function CustomersView({ customers, readOnly = false, onCreate, onUpdate,
   }
 
   async function markAsPaid(customer: Customer) {
+    if (!customer.oneAppOrganizationId) {
+      window.alert('Edite o cliente e informe o ID do estabelecimento no OneApp primeiro.');
+      return;
+    }
+    const nextDueDate = getNextMonthlyDueDate(customer.dueDay, customer.nextDueDate);
+    const confirmed = window.confirm(
+      `Confirmar o pagamento de ${customer.name || 'cliente sem nome'}?\n\nO próximo vencimento será ${formatDate(nextDueDate)} e a conta será liberada no OneApp.`,
+    );
+    if (!confirmed) return;
+
     setMarkingPaidId(customer.id);
 
     try {
-      await onUpdate(customer.id, {
-        ...customer,
-        nextDueDate: getNextMonthlyDueDate(customer.dueDay, customer.nextDueDate),
-        status: 'Ativa',
-      });
+      await onMarkPaid(customer.id);
+      window.alert('Pagamento registrado e vencimento atualizado no OneApp.');
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Nao foi possivel registrar o pagamento.');
     } finally {
       setMarkingPaidId(null);
     }
@@ -240,6 +251,16 @@ function CustomerFormFields({ value, onChange }: CustomerFormFieldsProps) {
           <input type="email" value={value.email} onChange={(event) => onChange({ ...value, email: event.target.value })} />
         </label>
       </div>
+      <label>
+        ID do estabelecimento no OneApp
+        <input
+          maxLength={24}
+          placeholder="Ex.: 69e6ef255570fc31c046de69"
+          value={value.oneAppOrganizationId}
+          onChange={(event) => onChange({ ...value, oneAppOrganizationId: event.target.value.trim() })}
+        />
+        <small>Usado para liberar a conta automaticamente ao marcar a mensalidade como paga.</small>
+      </label>
       <div className="form-row">
         <label>
           Tempo de contrato

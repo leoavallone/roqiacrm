@@ -58,6 +58,7 @@ export interface Customer {
   nextDueDate: string;
   status: SubscriptionStatus;
   serviceMode: CustomerServiceMode;
+  oneAppOrganizationId: string;
 }
 
 export interface FinanceTransaction {
