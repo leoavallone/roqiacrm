@@ -112,6 +112,7 @@ export function CustomersView({ customers, readOnly = false, onCreate, onUpdate,
           {customers.length === 0 && <p className="empty-state">Nenhum cliente cadastrado.</p>}
           {customers.map((customer) => {
             const remainingDays = customer.nextDueDate ? daysUntil(customer.nextDueDate) : null;
+            const isInactive = customer.status === 'Inativo';
 
             return (
               <article className="record-card customer-card" key={customer.id}>
@@ -161,7 +162,7 @@ export function CustomersView({ customers, readOnly = false, onCreate, onUpdate,
                       </div>
 
                       <div className="customer-card__footer">
-                        {remainingDays !== null && (
+                        {!isInactive && remainingDays !== null && (
                           <div className={remainingDays < 0 ? 'customer-payment-status customer-payment-status--late' : 'customer-payment-status'}>
                             {remainingDays < 0
                               ? `${Math.abs(remainingDays)} dias em atraso`
@@ -172,15 +173,17 @@ export function CustomersView({ customers, readOnly = false, onCreate, onUpdate,
                         )}
                         {!readOnly && (
                           <div className="customer-actions">
-                            <button
-                              className="secondary-action payment-action"
-                              disabled={markingPaidId === customer.id}
-                              type="button"
-                              onClick={() => void markAsPaid(customer)}
-                            >
-                              <CheckCircle2 size={16} aria-hidden="true" />
-                              {markingPaidId === customer.id ? 'Atualizando...' : 'Marcar como pago'}
-                            </button>
+                            {!isInactive && (
+                              <button
+                                className="secondary-action payment-action"
+                                disabled={markingPaidId === customer.id}
+                                type="button"
+                                onClick={() => void markAsPaid(customer)}
+                              >
+                                <CheckCircle2 size={16} aria-hidden="true" />
+                                {markingPaidId === customer.id ? 'Atualizando...' : 'Marcar como pago'}
+                              </button>
+                            )}
                             <button className="secondary-action" type="button" onClick={() => startEditing(customer)}>
                               <Edit3 size={16} aria-hidden="true" />
                               Editar
